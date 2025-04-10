@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom';
 import Login from './Components/UserManagement/login.jsx';
+import DatabaseCheck from './Components/Interactivity&Engagement/DatabaseCheck.jsx';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -15,7 +16,9 @@ function App() {
 
 
       {/*Interactivity routes*/}
+      <Route path="/test-database-connection" element={<DatabaseCheck />} />
 
+      {/*UserManagement routes*/}
 
 
 
