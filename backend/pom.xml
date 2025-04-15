@@ -68,6 +68,8 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
+      
+
 		<!-- PostgreSQL Driver -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
@@ -134,7 +136,21 @@
 		<!-- hibernate-commons-annotations is pulled in transitively by hibernate-core -->
 		<!-- No need to declare it explicitly when using the BOM -->
 
-	</dependencies>
+	
+        <dependency>
+           <groupId>com.h2database</groupId>
+           <artifactId>h2</artifactId>
+           <version>2.2.224</version>
+           <scope>test</scope>
+           </dependency>
+
+        <!-- HikariCP Connection Pool -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+         </dependencies>
 
 	<build>
 		<plugins>
@@ -162,6 +178,8 @@
 				</configuration>
 			</plugin>
 
+			 
+
 			<!-- Spring Boot Maven Plugin -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -175,7 +193,7 @@
 					</excludes>
 				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
-
 </project>
