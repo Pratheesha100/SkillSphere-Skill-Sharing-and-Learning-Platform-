@@ -21,8 +21,8 @@ const AuthNav = ({ currentView, onSwitchView }) => {
           layoutId="active-nav-indicator"
           className="
             absolute left-0 
-            top-[107px] translate-y-1/2 
-            w-[4px] h-[136px] 
+            top-[174px] translate-y-1/2 
+            w-[4px] h-[80px] 
             bg-[#EF476F] rounded-r-full"
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
         />
@@ -34,8 +34,8 @@ const AuthNav = ({ currentView, onSwitchView }) => {
           layoutId="active-nav-indicator"
           className="
             absolute left-0 
-            bottom-[73px] translate-y-1/2 
-            w-[4px] h-[136px] 
+            bottom-[139px] translate-y-1/2 
+            w-[4px] h-[80px] 
             bg-[#EF476F] rounded-r-full"
           transition={{ type: "spring", stiffness: 350, damping: 30 }}
         />
