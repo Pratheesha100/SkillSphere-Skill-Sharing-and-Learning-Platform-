@@ -3,37 +3,49 @@ package com.aspira.backend.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disable CSRF protection
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configure(http))
             .authorizeHttpRequests(auth -> auth
-               //interactivity module
-                .requestMatchers("/api/users/**").permitAll() // Allow unauthenticated access to /api/users
-                .requestMatchers("/api/posts/**").permitAll() // Allow unauthenticated access to /api/posts
-                .requestMatchers("/api/media/**").permitAll() // Allow unauthenticated access to /api/media
-                .requestMatchers("/api/reactions/**").permitAll() // Allow unauthenticated access to /api/reactions
-                .requestMatchers("/api/saved-posts/**").permitAll() // Allow unauthenticated access to /api/saved-posts
-                .requestMatchers("/api/comments/**").permitAll() // Allow unauthenticated access to /api/comments
-                .requestMatchers("/api/notifications/**").permitAll() // Allow unauthenticated access to /api/comments
-                .requestMatchers("/test-database-connection").permitAll() // Allow unauthenticated access to /api/comments
+                // Authentication endpoints
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/users/check-email").permitAll()
+                .requestMatchers("/oauth2/**").permitAll()
+                .requestMatchers("/login/oauth2/**").permitAll()
+                
+                // Interactivity module
+                .requestMatchers("/api/users/**").permitAll()
+                .requestMatchers("/api/posts/**").permitAll()
+                .requestMatchers("/api/media/**").permitAll()
+                .requestMatchers("/api/reactions/**").permitAll()
+                .requestMatchers("/api/saved-posts/**").permitAll()
+                .requestMatchers("/api/comments/**").permitAll()
+                .requestMatchers("/api/notifications/**").permitAll()
+                .requestMatchers("/test-database-connection").permitAll()
 
-               //skill share module
+                // Skill share module
+                // Add your skill share module endpoints here
 
+                // Group module
+                // Add your group module endpoints here
 
+                // Game Hub module
+                // Add your game hub module endpoints here
 
-               //Group module
-
-
-
-               //Game Hub module
-
-                .anyRequest().authenticated() // Require authentication for other endpoints
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             );
 
         return http.build();

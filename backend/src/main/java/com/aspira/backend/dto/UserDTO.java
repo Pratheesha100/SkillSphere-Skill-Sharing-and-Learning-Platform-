@@ -9,8 +9,7 @@ import java.time.LocalDate;
 public class UserDTO {
     private Long userId;
     
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 100)
+    @Size(max = 100)
     private String name;
     
     @NotBlank(message = "Username is required")
