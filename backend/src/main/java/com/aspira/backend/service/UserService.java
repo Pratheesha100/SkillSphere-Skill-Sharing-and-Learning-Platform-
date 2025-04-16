@@ -30,12 +30,13 @@ public class UserService {
         }
         
         User user = new User();
-        user.setName(userDTO.getName());
+        user.setName(userDTO.getName() != null ? userDTO.getName() : userDTO.getUsername());
         user.setUsername(userDTO.getUsername());
         user.setEmail(userDTO.getEmail());
         user.setPasswordHash(passwordEncoder.encode(userDTO.getPassword()));
         user.setOccupation(userDTO.getOccupation());
         user.setBirthday(userDTO.getBirthday());
+        user.setProvider("local");
         
         User savedUser = userRepository.save(user);
         return convertToDTO(savedUser);
@@ -72,6 +73,41 @@ public class UserService {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
         userRepository.deleteById(userId);
+    }
+
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Transactional
+    public UserDTO updateUserProfile(Long userId, UserDTO userDTO) {
+        User existingUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        
+        // Only update profile-specific fields
+        if (userDTO.getName() != null) {
+            existingUser.setName(userDTO.getName());
+        }
+        if (userDTO.getOccupation() != null) {
+            existingUser.setOccupation(userDTO.getOccupation());
+        }
+        if (userDTO.getBirthday() != null) {
+            existingUser.setBirthday(userDTO.getBirthday());
+        }
+        
+        User updatedUser = userRepository.save(existingUser);
+        return convertToDTO(updatedUser);
+    }
+
+    public UserDTO authenticateUser(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        return convertToDTO(user);
     }
 
     private UserDTO convertToDTO(User user) {
