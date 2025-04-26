@@ -22,16 +22,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+
+
+       
+
+
+        // Call the default implementation to fetch user details from the OAuth2 provider
         OAuth2User oAuth2User = super.loadUser(userRequest);
         Map<String, Object> attributes = oAuth2User.getAttributes();
-        
+        System.out.println("Inside OAuth2 loadUser: " + attributes.get("email"));
+
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
         String provider = userRequest.getClientRegistration().getRegistrationId();
-        
+
         Optional<User> userOptional = userRepository.findByEmail(email);
         User user;
-        
+
         if (userOptional.isPresent()) {
             user = userOptional.get();
             if (!user.getProvider().equals(provider)) {
@@ -45,7 +52,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setUsername(email.split("@")[0]);
             userRepository.save(user);
         }
-        
+
         return oAuth2User;
     }
-} 
+}

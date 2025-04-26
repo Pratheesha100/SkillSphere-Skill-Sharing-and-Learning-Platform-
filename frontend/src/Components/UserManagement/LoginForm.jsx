@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import googleIcon from "../../assets/google.png"; // Correct import for Google icon
 import facebookIcon from "../../assets/facebook.png"; // Correct import for Facebook icon
 
+// functional component that takes a prop onSuccess (called after a successful login).
 const LoginForm = ({ onSuccess }) => {
   const [formData, setFormData] = useState({
     email: "",
@@ -31,19 +32,21 @@ const LoginForm = ({ onSuccess }) => {
     }
   }, []);
 
+  //Updates the form fields and clears validation error for that field.
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-
-    setValidationErrors(prev => ({
+     setValidationErrors(prev => ({
       ...prev,
       [name]: ""
     }));
   };
-
+  
+//Checks if email and password are provided and if email is valid.
+//Updates the validationErrors state and returns true or false
   const validateForm = () => {
     const errors = {};
     
@@ -75,7 +78,8 @@ const LoginForm = ({ onSuccess }) => {
       }
     });
   };
-
+  
+  //Form Submission Handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
