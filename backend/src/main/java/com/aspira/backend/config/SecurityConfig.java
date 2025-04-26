@@ -37,7 +37,7 @@ public class SecurityConfig {
                         .requestMatchers("/test-database-connection").permitAll()
 
                         // Skill share module
-                        // Add your skill share module endpoints here
+                        .requestMatchers("/api/tasks/**").permitAll()
 
                         // Group module
                         // Add your group module endpoints here
