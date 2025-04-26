@@ -14,7 +14,7 @@ function App() {
       {/*User routes*/}
       <Route path="/" element={<AuthPage />} />
       <Route path="/home" element={<Home />} />
-      <Route path="/profile-update" element={<ProfileUpdate />} />
+      <Route path="/profile" element={<ProfileUpdate />} />
 
       {/*skillsharing routes*/}
 

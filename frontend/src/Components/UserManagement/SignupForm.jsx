@@ -266,7 +266,8 @@ const SignupForm = ({ onSuccess }) => {
         password: formData.password,
         name: formData.name,
         occupation: formData.occupation,
-        birthday: formData.birthday
+        birthday: formData.birthday,
+        provider: "local"
       });
 
       if (response.status === 201) {

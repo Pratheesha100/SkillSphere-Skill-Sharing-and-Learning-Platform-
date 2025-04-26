@@ -34,7 +34,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String passwordHash; // Nullable for OAuth2 users
 
     @Column
