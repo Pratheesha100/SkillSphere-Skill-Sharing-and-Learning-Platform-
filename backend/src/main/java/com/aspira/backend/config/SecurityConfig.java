@@ -28,8 +28,7 @@ public class SecurityConfig {
 
 
                //Group module
-
-
+                .requestMatchers("/api/groups/**").permitAll() // Allow unauthenticated access to /api/groups
 
                //Game Hub module
 
