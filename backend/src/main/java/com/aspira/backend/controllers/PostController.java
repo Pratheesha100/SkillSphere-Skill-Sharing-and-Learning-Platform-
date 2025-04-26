@@ -94,7 +94,7 @@ public class PostController {
     }
 
     // Get ranked posts (sorted by rank score)
-    @GetMapping("/ranked")
+    @GetMapping("/rank")
     public ResponseEntity<List<PostDTO>> getRankedPosts() {
         List<PostDTO> rankedPosts = postService.getRankedPosts();
         return ResponseEntity.ok(rankedPosts);
