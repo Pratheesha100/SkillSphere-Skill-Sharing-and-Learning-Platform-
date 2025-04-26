@@ -7,6 +7,8 @@ import SimulateLogin from './Components/GroupManagement/Simulate-Login.jsx';
 import GroupView from './Components/GroupManagement/GroupView.jsx';
 import GroupCreating from './Components/GroupManagement/GroupCreating.jsx';
 import GroupChat from './Components/GroupManagement/GroupChat.jsx';
+import GroupUpdate from './Components/GroupManagement/GroupUpdate.jsx';
+import AddMember from './Components/GroupManagement/AddMember.jsx';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -32,6 +34,8 @@ function App() {
       <Route path="/create-group" element={<GroupCreating />} />
       <Route path="/create-group/:userId" element={<GroupCreating />} />
       <Route path="/groups/:groupId/:userId" element={<GroupChat />} />
+      <Route path="/update-group/:groupId/:userId" element={<GroupUpdate />} />
+      <Route path="/groups/:groupId/add-members/:userId" element={<AddMember />} />
 
       {/*Game routes*/}
     </Routes>

@@ -87,6 +87,14 @@ function GroupView() {
         navigate(`/groups/${groupId}/add-members/${userId}`);
     };
 
+    const handleUpdateGroup = (groupId) => {
+        if (!userId) {
+            setError('User ID is required to update group');
+            return;
+        }
+        navigate(`/update-group/${groupId}/${userId}`);
+    };
+
     if (!userId) {
         return <div className="error">Error: User ID is required</div>;
     }
@@ -152,6 +160,12 @@ function GroupView() {
                                 </button>
                                 {group.admin && group.admin.userId === parseInt(userId) && (
                                     <>
+                                        <button 
+                                            onClick={() => handleUpdateGroup(group.groupId)}
+                                            className="update-group-btn"
+                                        >
+                                            Update
+                                        </button>
                                         <button 
                                             onClick={() => handleAddMembers(group.groupId)}
                                             className="add-members-btn"
