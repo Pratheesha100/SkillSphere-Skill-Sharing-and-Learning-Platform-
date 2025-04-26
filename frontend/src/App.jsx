@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom';
-import Login from './Components/UserManagement/login.jsx';
+import Home from './Components/UserManagement/Home.jsx';
+import AuthPage from './Components/UserManagement/AuthPage.jsx';
 import DatabaseCheck from './Components/Interactivity&Engagement/DatabaseCheck.jsx';
 
 function App() {
@@ -8,8 +9,10 @@ function App() {
 
   return (
     <Routes>
+      
       {/*User routes*/}
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<AuthPage />} />
+      <Route path="/home" element={<Home />} />
 
       {/*skillsharing routes*/}
 
