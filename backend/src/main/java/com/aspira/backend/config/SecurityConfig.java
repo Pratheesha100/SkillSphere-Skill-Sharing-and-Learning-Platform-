@@ -13,25 +13,21 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable()) // Disable CSRF protection
             .authorizeHttpRequests(auth -> auth
-               //interactivity module
-                .requestMatchers("/api/users/**").permitAll() // Allow unauthenticated access to /api/users
-                .requestMatchers("/api/posts/**").permitAll() // Allow unauthenticated access to /api/posts
-                .requestMatchers("/api/media/**").permitAll() // Allow unauthenticated access to /api/media
-                .requestMatchers("/api/reactions/**").permitAll() // Allow unauthenticated access to /api/reactions
-                .requestMatchers("/api/saved-posts/**").permitAll() // Allow unauthenticated access to /api/saved-posts
-                .requestMatchers("/api/comments/**").permitAll() // Allow unauthenticated access to /api/comments
-                .requestMatchers("/api/notifications/**").permitAll() // Allow unauthenticated access to /api/comments
-                .requestMatchers("/test-database-connection").permitAll() // Allow unauthenticated access to /api/comments
+                // Interactivity module
+                .requestMatchers("/api/users/**").permitAll()
+                .requestMatchers("/api/posts/**").permitAll()
+                .requestMatchers("/api/media/**").permitAll()
+                .requestMatchers("/api/reactions/**").permitAll()
+                .requestMatchers("/api/saved-posts/**").permitAll()
+                .requestMatchers("/api/comments/**").permitAll()
+                .requestMatchers("/api/notifications/**").permitAll()
+                .requestMatchers("/test-database-connection").permitAll()
 
-               //skill share module
+                // Game Hub module ✅
+                .requestMatchers("/api/games/**").permitAll()
 
-
-
-               //Group module
-
-
-
-               //Game Hub module
+                // Skill share module
+                // Group module
 
                 .anyRequest().authenticated() // Require authentication for other endpoints
             );
