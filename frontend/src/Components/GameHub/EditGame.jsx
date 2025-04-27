@@ -51,7 +51,7 @@ const EditGame = () => {
         icon: 'success',
         confirmButtonText: 'OK'
       }).then(() => {
-        navigate('/games');
+        navigate('/gamehub');
       });
     } catch (error) {
       setError(error.response?.data?.message || 'Error updating game');
