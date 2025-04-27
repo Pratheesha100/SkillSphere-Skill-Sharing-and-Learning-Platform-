@@ -1,11 +1,15 @@
 package com.aspira.backend.dto;
 
+import org.springframework.hateoas.RepresentationModel;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
-public class NotificationDTO {
+@EqualsAndHashCode(callSuper = false)
+public class NotificationDTO extends RepresentationModel<NotificationDTO> {
     private Long notificationId;
 
     @NotNull(message = "User ID is required")
