@@ -3,9 +3,13 @@ package com.aspira.backend.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+import org.springframework.hateoas.RepresentationModel;
 
 @Data
-public class CommentDTO {
+@EqualsAndHashCode(callSuper = false)
+public class CommentDTO extends RepresentationModel<CommentDTO> {
     private Long commentId;
 
     @NotBlank(message = "Content is required")
