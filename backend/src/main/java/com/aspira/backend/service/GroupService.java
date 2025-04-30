@@ -54,6 +54,12 @@ public class GroupService {
 
     @Transactional
     public void deleteGroup(Long id) {
+        Group group = groupRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Group not found"));
+                
+        // Check if there are any messages or other dependencies
+        // Add more specific checks here if needed
+        
         groupRepository.deleteById(id);
     }
 

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/groups")
@@ -87,8 +88,22 @@ public class GroupController {
     }
 
     @DeleteMapping("/{groupId}")
-    public ResponseEntity<?> deleteGroup(@PathVariable Long groupId) {
+    public ResponseEntity<?> deleteGroup(
+            @PathVariable Long groupId,
+            @RequestParam(value = "userId", required = true) Long userId) {
         try {
+            Optional<Group> groupOpt = groupService.getGroupById(groupId);
+            if (!groupOpt.isPresent()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "Group not found"));
+            }
+            
+            Group group = groupOpt.get();
+            if (!group.getAdmin().getUserId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "Only the group admin can delete the group"));
+            }
+            
             groupService.deleteGroup(groupId);
             return ResponseEntity.ok().build();
         } catch (Exception e) {

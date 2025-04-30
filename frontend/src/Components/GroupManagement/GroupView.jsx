@@ -60,7 +60,7 @@ function GroupView() {
         }
 
         try {
-            const response = await fetch(`http://localhost:8080/api/groups/${groupId}`, {
+            const response = await fetch(`http://localhost:8080/api/groups/${groupId}?userId=${userId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,11 +70,13 @@ function GroupView() {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Failed to delete group');
+                console.error('Delete group error response:', errorData);
+                throw new Error(errorData.error || `Failed to delete group (Status: ${response.status})`);
             }
 
-            setGroups(groups.filter(group => group.groupId !== groupId));
+            setGroups(prevGroups => prevGroups.filter(group => group.groupId !== groupId));
         } catch (err) {
+            console.error('Error in handleDeleteGroup:', err);
             setError(err.message);
         }
     };
