@@ -1,4 +1,4 @@
-# 🎯 Aspira - Share. Learn. Level Up.
+# 🎯 SkillSphere - Share. Learn. Level Up.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Build](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
@@ -57,9 +57,9 @@
 
 ## 🛠️ Tech Stack
 
-**Frontend**	 **Backend**	  **Database**	  **Other Tools**
-React.js	      Spring Boot	    PostgreSQL	    OAuth 2.0, JWT, WebSockets
-HTML/CSS/JS	    Java 21 (JDK)	  pgAdmin	        Axios, Maven
+**Frontend**	    **Backend**    **Database**	   **Other Tools**
+- React.js	      Spring Boot	    PostgreSQL	    OAuth 2.0, JWT, WebSockets
+- HTML/CSS/JS	    Java 21 (JDK)	  pgAdmin	        Axios, Maven
 
 ---
 
