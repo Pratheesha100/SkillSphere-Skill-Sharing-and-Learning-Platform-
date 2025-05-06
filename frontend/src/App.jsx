@@ -5,6 +5,9 @@ import AuthPage from './Components/UserManagement/AuthPage.jsx';
 import DatabaseCheck from './Components/Interactivity&Engagement/DatabaseCheck.jsx';
 import ProfileUpdate from './Components/UserManagement/ProfileUpdate.jsx';
 import TaskCorner from './Components/SkillSharing/TaskCorner.jsx';
+import { LayoutDashboard } from 'lucide-react';
+import Posts from './Components/SkillSharing/Posts';
+
 
 function App() {
   const [count, setCount] = useState(0)
@@ -16,10 +19,11 @@ function App() {
       <Route path="/" element={<AuthPage />} />
       <Route path="/home" element={<Home />} />
       <Route path="/profile" element={<ProfileUpdate />} />
+      
 
       {/*skillsharing routes*/}
       <Route path="/Task-Corner" element={<TaskCorner />} />
-
+      <Route path="/posts" element={<Posts />} />
 
       {/*Interactivity routes*/}
       <Route path="/test-database-connection" element={<DatabaseCheck />} />
