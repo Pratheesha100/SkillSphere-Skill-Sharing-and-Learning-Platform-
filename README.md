@@ -57,9 +57,10 @@
 
 ## 🛠️ Tech Stack
 
-**Frontend**	    **Backend**    **Database**	   **Other Tools**
-- React.js	      Spring Boot	    PostgreSQL	    OAuth 2.0, JWT, WebSockets
-- HTML/CSS/JS	    Java 21 (JDK)	  pgAdmin	        Axios, Maven
+- **Frontend** -	 React.js, HTML/CSS/JS 
+- **Backend**  -   Spring Boot, Java 21 (JDK)
+- **Database** -	 PostgreSQL, pgAdmin
+- **Other Tools**	-	OAuth 2.0, JWT, WebSockets 	        
 
 ---
 
