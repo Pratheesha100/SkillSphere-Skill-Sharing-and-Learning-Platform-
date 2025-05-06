@@ -12,6 +12,8 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -27,11 +29,26 @@ const Posts = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [currentPost, setCurrentPost] = useState({
     title: '',
     content: '',
     category: '',
   });
+
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      setError('Please login to access posts');
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+      return;
+    }
+    fetchPosts();
+  }, [navigate]);
 
   const categories = [
     'Technology',
@@ -43,22 +60,37 @@ const Posts = () => {
     'Other',
   ];
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
   const fetchPosts = async () => {
     try {
+      setLoading(true);
       const response = await axios.get('http://localhost:8080/api/posts');
       setPosts(response.data);
+      setError(null);
     } catch (error) {
       console.error('Error fetching posts:', error);
+      setError('Failed to fetch posts. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleOpenDialog = (post = null) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      setError('Please login to create or edit posts');
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+      return;
+    }
+
     if (post) {
-      setCurrentPost(post);
+      setCurrentPost({
+        postId: post.postId,
+        title: post.title,
+        content: post.content,
+        category: post.category,
+      });
       setEditMode(true);
     } else {
       setCurrentPost({
@@ -76,6 +108,11 @@ const Posts = () => {
     setSelectedFile(null);
     setPreviewUrl('');
     setEditMode(false);
+    setCurrentPost({
+      title: '',
+      content: '',
+      category: '',
+    });
   };
 
   const handleInputChange = (e) => {
@@ -101,6 +138,16 @@ const Posts = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        setError('Please login to create or edit posts');
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+        return;
+      }
+
       const formData = new FormData();
       formData.append('title', currentPost.title);
       formData.append('content', currentPost.content);
@@ -112,47 +159,120 @@ const Posts = () => {
       }
 
       if (editMode) {
-        await axios.put(`http://localhost:8080/api/posts/${currentPost.postId}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        await axios.put(
+          `http://localhost:8080/api/posts/${currentPost.postId}?userId=${userId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+        setSuccess('Post updated successfully!');
       } else {
-        await axios.post(`http://localhost:8080/api/posts/${localStorage.getItem('userId')}`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        await axios.post(
+          `http://localhost:8080/api/posts/${userId}`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+        setSuccess('Post created successfully!');
       }
 
       handleCloseDialog();
       fetchPosts();
     } catch (error) {
       console.error('Error saving post:', error);
+      if (error.response?.status === 401) {
+        setError('Session expired. Please login again.');
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+      } else {
+        setError(error.response?.data?.message || 'Failed to save post. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (postId) => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      setError('Please login to delete posts');
+      setTimeout(() => {
+        navigate('/');
+      }, 2000);
+      return;
+    }
+
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
+
     try {
-      await axios.delete(`http://localhost:8080/api/posts/${postId}?userId=${localStorage.getItem('userId')}`);
+      setLoading(true);
+      await axios.delete(`http://localhost:8080/api/posts/${postId}?userId=${userId}`);
+      setSuccess('Post deleted successfully!');
       fetchPosts();
     } catch (error) {
       console.error('Error deleting post:', error);
+      if (error.response?.status === 401) {
+        setError('Session expired. Please login again.');
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
+      } else {
+        setError(error.response?.data?.message || 'Failed to delete post. Please try again.');
+      }
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCloseSnackbar = () => {
+    setError(null);
+    setSuccess(null);
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {error && (
+        <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+          <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+        </Snackbar>
+      )}
+
+      {success && (
+        <Snackbar open={!!success} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+          <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+            {success}
+          </Alert>
+        </Snackbar>
+      )}
+
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800">Posts</h1>
         <button
           onClick={() => handleOpenDialog()}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          disabled={loading}
         >
           <AddIcon className="w-5 h-5" />
           Create Post
         </button>
       </div>
+
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {posts.map((post) => (
@@ -183,12 +303,14 @@ const Posts = () => {
                   <button
                     onClick={() => handleOpenDialog(post)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                    disabled={loading}
                   >
                     <EditIcon className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleDelete(post.postId)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                    disabled={loading}
                   >
                     <DeleteIcon className="w-5 h-5" />
                   </button>
@@ -222,6 +344,7 @@ const Posts = () => {
               onChange={handleInputChange}
               required
               className="mb-4"
+              disabled={loading}
             />
             <TextField
               fullWidth
@@ -233,6 +356,7 @@ const Posts = () => {
               multiline
               rows={4}
               className="mb-4"
+              disabled={loading}
             />
             <FormControl fullWidth className="mb-4">
               <InputLabel>Category</InputLabel>
@@ -242,6 +366,7 @@ const Posts = () => {
                 onChange={handleInputChange}
                 required
                 label="Category"
+                disabled={loading}
               >
                 {categories.map((category) => (
                   <MenuItem key={category} value={category}>
@@ -253,6 +378,7 @@ const Posts = () => {
             <button
               type="button"
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors"
+              disabled={loading}
             >
               <label className="w-full cursor-pointer flex items-center justify-center gap-2">
                 <span>Upload Media</span>
@@ -261,6 +387,7 @@ const Posts = () => {
                   hidden
                   accept="image/*,video/*"
                   onChange={handleFileChange}
+                  disabled={loading}
                 />
               </label>
             </button>
@@ -287,14 +414,16 @@ const Posts = () => {
           <button
             onClick={handleCloseDialog}
             className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            disabled={loading}
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            disabled={loading}
           >
-            {editMode ? 'Update' : 'Create'}
+            {loading ? 'Processing...' : editMode ? 'Update' : 'Create'}
           </button>
         </DialogActions>
       </Dialog>
