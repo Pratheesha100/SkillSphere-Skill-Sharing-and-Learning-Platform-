@@ -75,7 +75,7 @@ const GameHub = () => {
           </Link>
 
           {/* Admin Panel Card */}
-          <Link to="/admin" className="group">
+          <Link to="/admin/mcq-list" className="group">
             <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
               <div className="p-6">
                 <div className="flex items-center justify-between">
@@ -107,4 +107,4 @@ const GameHub = () => {
   );
 };
 
-export default GameHub; 
+export default GameHub;

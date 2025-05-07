@@ -1,5 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, List, ListItem, ListItemText, Button, Alert, CircularProgress } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  Button, 
+  Alert, 
+  CircularProgress,
+  Paper,
+  Chip,
+  Divider,
+  Grid
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -83,80 +96,152 @@ const MemoryMatchList = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Memory Match Games</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => navigate('/admin/add-memory-match-game')}
-        >
-          Add New Game
-        </Button>
-      </Box>
+    <Box sx={{ 
+      maxWidth: 1200, 
+      mx: 'auto', 
+      p: 3,
+      backgroundColor: '#f5f5f5',
+      minHeight: '100vh'
+    }}>
+      <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 3 
+        }}>
+          <Typography variant="h4" sx={{ 
+            fontWeight: 600,
+            color: '#1a237e'
+          }}>
+            Memory Match Games
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => navigate('/admin/add-memory-match-game')}
+            sx={{
+              borderRadius: 2,
+              textTransform: 'none',
+              px: 3,
+              py: 1,
+              boxShadow: 2
+            }}
+          >
+            Add New Game
+          </Button>
+        </Box>
 
-      {memoryMatchGames.length === 0 ? (
-        <Alert severity="info">
-          No memory match games available. Create your first game!
-          <Box sx={{ mt: 2 }}>
+        {memoryMatchGames.length === 0 ? (
+          <Alert 
+            severity="info" 
+            sx={{ 
+              borderRadius: 2,
+              '& .MuiAlert-message': { width: '100%' }
+            }}
+          >
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              No memory match games available. Create your first game!
+            </Typography>
             <Button
               variant="contained"
               color="primary"
               onClick={() => navigate('/admin/add-memory-match-game')}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none'
+              }}
             >
               Create New Game
             </Button>
-          </Box>
-        </Alert>
-      ) : (
-        <List>
-          {memoryMatchGames.map((game) => (
-            <ListItem
-              key={game.id}
-              sx={{
-                bgcolor: 'background.paper',
-                mb: 2,
-                borderRadius: 1,
-                boxShadow: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'stretch'
-              }}
-            >
-              <ListItemText
-                primary={game.paragraph?.substring(0, 100) + '...'}
-                secondary={`Category: ${game.category || 'N/A'} | Level: ${game.level || 'N/A'} | Timer: ${game.timer || 'N/A'} seconds`}
-              />
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="primary"
-                  onClick={() => handlePreview(game.id)}
+          </Alert>
+        ) : (
+          <Grid container spacing={2}>
+            {memoryMatchGames.map((game) => (
+              <Grid item xs={12} key={game.id}>
+                <Paper 
+                  elevation={1} 
+                  sx={{ 
+                    p: 3,
+                    borderRadius: 2,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 3
+                    }
+                  }}
                 >
-                  Preview
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => handleEdit(game.id)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="error"
-                  onClick={() => handleDelete(game.id)}
-                >
-                  Delete
-                </Button>
-              </Box>
-            </ListItem>
-          ))}
-        </List>
-      )}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        color: '#1a237e',
+                        mb: 1,
+                        fontWeight: 500
+                      }}
+                    >
+                      {game.paragraph?.substring(0, 100)}
+                      {game.paragraph?.length > 100 ? '...' : ''}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                      <Chip 
+                        label={`Category: ${game.category || 'N/A'}`}
+                        color="primary"
+                        variant="outlined"
+                        size="small"
+                      />
+                      <Chip 
+                        label={`Level: ${game.level || 'N/A'}`}
+                        color="secondary"
+                        variant="outlined"
+                        size="small"
+                      />
+                      <Chip 
+                        label={`Timer: ${game.timer || 'N/A'} seconds`}
+                        color="info"
+                        variant="outlined"
+                        size="small"
+                      />
+                    </Box>
+                  </Box>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'flex-end', 
+                    gap: 1,
+                    '& .MuiButton-root': {
+                      borderRadius: 2,
+                      textTransform: 'none'
+                    }
+                  }}>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => handlePreview(game.id)}
+                    >
+                      Preview
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      onClick={() => handleEdit(game.id)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      onClick={() => handleDelete(game.id)}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        )}
+      </Paper>
     </Box>
   );
 };

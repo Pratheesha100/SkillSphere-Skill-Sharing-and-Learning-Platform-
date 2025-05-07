@@ -1,33 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Box, 
-  Typography, 
-  TextField, 
-  Button, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem, 
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
   Alert,
   CircularProgress,
+  Paper,
   Grid,
-  Chip,
-  Paper
+  Radio,
+  RadioGroup,
+  FormControlLabel
 } from '@mui/material';
 import axios from 'axios';
 
-const EditMemoryMatchGame = () => {
+const EditMcqGame = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [game, setGame] = useState({
-    paragraph: '',
+    questionText: '',
+    answer1: '',
+    answer2: '',
+    answer3: '',
+    answer4: '',
+    correctAnswer: '',
     category: '',
     level: '',
-    blanks: [],
-    options: [],
-    timer: 300,
-    type: 'MEMORY_MATCH'
+    type: 'MCQ',
+    timer: 60
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -56,34 +61,16 @@ const EditMemoryMatchGame = () => {
     }));
   };
 
-  const handleBlanksChange = (index, value) => {
-    const newBlanks = [...game.blanks];
-    newBlanks[index] = value;
-    setGame(prev => ({
-      ...prev,
-      blanks: newBlanks
-    }));
-  };
-
-  const handleOptionsChange = (index, value) => {
-    const newOptions = [...game.options];
-    newOptions[index] = value;
-    setGame(prev => ({
-      ...prev,
-      options: newOptions
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await axios.put(`http://localhost:8080/api/games/${id}`, game);
-      setSuccess('Game updated successfully');
+      setSuccess('MCQ game updated successfully');
       setTimeout(() => {
-        navigate('/admin/memory-match-list');
+        navigate('/admin/mcq-list');
       }, 2000);
     } catch (err) {
-      setError('Failed to update game');
+      setError('Failed to update MCQ game');
     }
   };
 
@@ -98,7 +85,7 @@ const EditMemoryMatchGame = () => {
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Edit Memory Match Game
+        Edit MCQ Game
       </Typography>
 
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -109,16 +96,76 @@ const EditMemoryMatchGame = () => {
           <TextField
             fullWidth
             multiline
-            rows={4}
-            label="Paragraph"
-            name="paragraph"
-            value={game.paragraph}
+            rows={3}
+            label="Question"
+            name="questionText"
+            value={game.questionText}
             onChange={handleChange}
-            sx={{ mb: 2 }}
-            helperText="Use ___ for blanks in the text"
+            sx={{ mb: 3 }}
+            required
           />
 
-          <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Option 1"
+                name="answer1"
+                value={game.answer1}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Option 2"
+                name="answer2"
+                value={game.answer2}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Option 3"
+                name="answer3"
+                value={game.answer3}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Option 4"
+                name="answer4"
+                value={game.answer4}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
+          </Grid>
+
+          <FormControl component="fieldset" sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Correct Answer
+            </Typography>
+            <RadioGroup
+              row
+              name="correctAnswer"
+              value={game.correctAnswer}
+              onChange={handleChange}
+            >
+              <FormControlLabel value={game.answer1} control={<Radio />} label="Option 1" />
+              <FormControlLabel value={game.answer2} control={<Radio />} label="Option 2" />
+              <FormControlLabel value={game.answer3} control={<Radio />} label="Option 3" />
+              <FormControlLabel value={game.answer4} control={<Radio />} label="Option 4" />
+            </RadioGroup>
+          </FormControl>
+
+          <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel>Category</InputLabel>
@@ -127,6 +174,7 @@ const EditMemoryMatchGame = () => {
                   value={game.category}
                   onChange={handleChange}
                   label="Category"
+                  required
                 >
                   <MenuItem value="ICT">ICT</MenuItem>
                   <MenuItem value="Math">Math</MenuItem>
@@ -143,6 +191,7 @@ const EditMemoryMatchGame = () => {
                   value={game.level}
                   onChange={handleChange}
                   label="Level"
+                  required
                 >
                   <MenuItem value="Easy">Easy</MenuItem>
                   <MenuItem value="Medium">Medium</MenuItem>
@@ -150,36 +199,6 @@ const EditMemoryMatchGame = () => {
                 </Select>
               </FormControl>
             </Grid>
-          </Grid>
-
-          <Typography variant="h6" gutterBottom>
-            Blanks (Correct Answers)
-          </Typography>
-          {game.blanks.map((blank, index) => (
-            <TextField
-              key={index}
-              fullWidth
-              label={`Blank ${index + 1}`}
-              value={blank}
-              onChange={(e) => handleBlanksChange(index, e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          ))}
-
-          <Typography variant="h6" gutterBottom>
-            Options
-          </Typography>
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            {game.options.map((option, index) => (
-              <Grid item xs={12} sm={6} key={index}>
-                <TextField
-                  fullWidth
-                  label={`Option ${index + 1}`}
-                  value={option}
-                  onChange={(e) => handleOptionsChange(index, e.target.value)}
-                />
-              </Grid>
-            ))}
           </Grid>
 
           <TextField
@@ -195,7 +214,7 @@ const EditMemoryMatchGame = () => {
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
             <Button
               variant="outlined"
-              onClick={() => navigate('/admin/memory-match-list')}
+              onClick={() => navigate('/admin/mcq-list')}
             >
               Cancel
             </Button>
@@ -204,7 +223,7 @@ const EditMemoryMatchGame = () => {
               variant="contained"
               color="primary"
             >
-              Update Game
+              Update MCQ
             </Button>
           </Box>
         </form>
@@ -213,4 +232,4 @@ const EditMemoryMatchGame = () => {
   );
 };
 
-export default EditMemoryMatchGame;
+export default EditMcqGame;

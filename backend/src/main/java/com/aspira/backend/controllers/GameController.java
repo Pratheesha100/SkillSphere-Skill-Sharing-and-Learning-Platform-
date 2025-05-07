@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/games")
@@ -114,6 +115,18 @@ public class GameController {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             logger.error("Error deleting game: ", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/results")
+    public ResponseEntity<?> submitGameResults(@RequestBody Map<String, Object> results) {
+        try {
+            logger.info("Received game results: {}", results);
+            // TODO: Add logic to store results in the database
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("Error submitting game results: ", e);
             return ResponseEntity.internalServerError().build();
         }
     }
