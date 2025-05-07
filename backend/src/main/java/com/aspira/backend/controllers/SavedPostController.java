@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/saved-posts")
+@RequestMapping("/api/savedPosts")
 @RequiredArgsConstructor
 public class SavedPostController {
 
