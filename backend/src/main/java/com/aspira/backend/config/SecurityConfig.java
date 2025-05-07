@@ -36,9 +36,12 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         // Authentication endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/users/check-email").permitAll()
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
+                         .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/error", "/api/greeting").permitAll()
+                       
+                         .requestMatchers("/api/users/check-email").permitAll() // Explicitly for GET /api/users/check-email from logs
+                .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // Explicitly for POST /api/users (user creation)
+                .requestMatchers(HttpMethod.GET, "/api/users/email").permitAll() // If you also have /api/users/email endpoint for GET
+                .requestMatchers(HttpMethod.GET, "/api/users/{userId:\\d+}").permitAll() // For public user profiles
 
                         // Interactivity module
                         .requestMatchers("/api/users/**").permitAll()
@@ -68,7 +71,13 @@ public class SecurityConfig {
                         );
                     return http.build();
                 }
-                
+
+     @Bean
+    public UserDetailsService userDetailsService() {
+        return customUserDetailsService;
+    }
+   
+
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
