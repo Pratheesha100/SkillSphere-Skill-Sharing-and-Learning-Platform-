@@ -25,23 +25,39 @@ function TaskCorner() {
   const [userId, setUserId] = useState(localStorage.getItem('userId'));
 
   useEffect(() => {
-    if (userId) {
-      fetchTasks();
+    // Check if userId is missing or invalid
+    const numericUserId = parseInt(userId, 10);
+    if (!userId || isNaN(numericUserId)) {
+      alert('No valid user ID found. Please log in.');
+      // Optionally, you could redirect to a login page here
+      return;
     }
+    fetchTasks();
   }, [userId]);
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/tasks/user/${userId}`);
+      const numericUserId = parseInt(userId, 10);
+      if (isNaN(numericUserId)) {
+        throw new Error('Invalid user ID');
+      }
+      const response = await axios.get(`http://localhost:8080/api/tasks/user/${numericUserId}`);
       setTasks(response.data);
     } catch (error) {
       console.error('Error fetching tasks:', error);
+      alert(error.response?.data?.message || 'Failed to fetch tasks. Please try again.');
     }
   };
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
     try {
+      // Parse userId as number
+      const numericUserId = parseInt(userId, 10);
+      if (isNaN(numericUserId)) {
+        throw new Error('Invalid user ID');
+      }
+
       // Ensure correct date format and convert arrays if needed
       const taskData = {
         ...newTask,
@@ -50,8 +66,8 @@ function TaskCorner() {
         startDate: ensureSeconds(newTask.startDate),
         endDate: ensureSeconds(newTask.endDate)
       };
-      // userId as query param, not in body
-      const response = await axios.post(`http://localhost:8080/api/tasks?userId=${userId}`, taskData);
+
+      const response = await axios.post(`http://localhost:8080/api/tasks?userId=${numericUserId}`, taskData);
       if (response.status === 200 || response.status === 201) {
         setNewTask({
           title: '',
@@ -66,7 +82,7 @@ function TaskCorner() {
       }
     } catch (error) {
       console.error('Error creating task:', error);
-      alert('Failed to create task.');
+      alert(error.response?.data?.message || 'Failed to create task. Please try again.');
     }
   };
 
@@ -93,7 +109,7 @@ function TaskCorner() {
       }
     } catch (error) {
       console.error('Error updating task:', error);
-      alert('Failed to update task. Please try again.');
+      alert(error.response?.data?.message || 'Failed to update task. Please try again.');
     }
   };
 
@@ -101,8 +117,10 @@ function TaskCorner() {
     try {
       await axios.delete(`http://localhost:8080/api/tasks/${taskId}`);
       fetchTasks();
+      alert('Task deleted successfully!');
     } catch (error) {
       console.error('Error deleting task:', error);
+      alert(error.response?.data?.message || 'Failed to delete task. Please try again.');
     }
   };
 
