@@ -96,6 +96,11 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
+
     @Transactional
     // Update user profile details (name, occupation, birthday)
     public UserDTO updateUserProfile(Long userId, UserDTO userDTO) {
