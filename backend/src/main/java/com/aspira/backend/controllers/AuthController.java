@@ -1,28 +1,34 @@
 package com.aspira.backend.controllers;
 
-import com.aspira.backend.dto.LoginRequest;
+import com.aspira.backend.dto.AuthenticationRequest;
+import com.aspira.backend.dto.AuthenticationResponse;
 import com.aspira.backend.dto.UserDTO;
+import com.aspira.backend.service.AuthenticationService;
 import com.aspira.backend.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final UserService userService;
+    private final AuthenticationService authenticationService;
 
-    public AuthController(UserService userService) {
-        this.userService = userService;
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO) {
+        try {
+            UserDTO createdUser = userService.createUser(userDTO);
+            return ResponseEntity.ok(createdUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        try {
-            UserDTO user = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
-            return ResponseEntity.ok(user);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(401).body(e.getMessage());
-        }
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest request) {
+        return ResponseEntity.ok(authenticationService.authenticate(request));
     }
 } 
