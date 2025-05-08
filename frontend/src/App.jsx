@@ -25,7 +25,7 @@ function App() {
       {/*skillsharing routes*/}
       <Route path="/TaskCorner" element={<TaskCorner />} />
       <Route path="/postview" element= {<Layout>  <PostsView /> </Layout>} />
-      <Route path="/post" element= {<Layout>  <Posts /> </Layout>} />
+      <Route path="/posts" element= {<Layout>  <Posts /> </Layout>} />
       
 
       {/*Interactivity routes*/}

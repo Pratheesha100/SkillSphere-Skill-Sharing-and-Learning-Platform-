@@ -7,9 +7,10 @@ const navLinks = [
   { name: "Home", path: "/home" },
   { name: "About Us", path: "/about" },
   { name: "Posts", path: "/posts" },
-  { name: "Tasks Corner", path: "/Task-Corner" },
-  { name: "GameHub", path: "/gamehub" },
-  { name: "Groups", path: "/groups" },
+  { name: "Tasks Corner", path: "/TaskCorner" },
+  { name: "GameHub", path: "" },
+  { name: "Groups", path: "" },
+  { name: "Leader Board", path: "" },
 ];
 
 function Header() {
