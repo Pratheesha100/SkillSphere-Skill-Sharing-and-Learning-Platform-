@@ -6,6 +6,8 @@ import com.aspira.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -44,10 +46,11 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @PutMapping("/{userId}/profile")
-    public ResponseEntity<UserDTO> updateUserProfile(
-            @PathVariable Long userId,
-            @RequestBody UserDTO userDTO) {
+    @PutMapping("/me/profile")
+    public ResponseEntity<UserDTO> updateUserProfile(@RequestBody UserDTO userDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Long userId = userService.getUserByEmail(email).getUserId();
         try {
             UserDTO updatedUser = userService.updateUserProfile(userId, userDTO);
             return ResponseEntity.ok(updatedUser);
@@ -58,8 +61,11 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Long userId = userService.getUserByEmail(email).getUserId();
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }

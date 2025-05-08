@@ -14,12 +14,11 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 
 @Configuration
 @EnableWebSecurity
@@ -45,16 +44,16 @@ public class SecurityConfig {
 
                         // Interactivity module
                         .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/posts/**").permitAll()
-                        .requestMatchers("/api/media/**").permitAll()
-                        .requestMatchers("/api/reactions/**").permitAll()
-                        .requestMatchers("/api/saved-posts/**").permitAll()
-                        .requestMatchers("/api/comments/**").permitAll()
-                        .requestMatchers("/api/notifications/**").permitAll()
-                        .requestMatchers("/test-database-connection").permitAll()
+                        .requestMatchers("/api/posts/**").authenticated()
+                        .requestMatchers("/api/media/**").authenticated()
+                        .requestMatchers("/api/reactions/**").authenticated()
+                        .requestMatchers("/api/saved-posts/**").authenticated()
+                        .requestMatchers("/api/comments/**").authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers("/test-database-connection").authenticated()
 
                         // Skill share module
-                        .requestMatchers("/api/tasks/**").permitAll()
+                        .requestMatchers("/api/tasks/**").authenticated()
                         // Add your skill share module endpoints here
 
                         // Group module

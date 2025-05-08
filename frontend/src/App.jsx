@@ -5,8 +5,9 @@ import AuthPage from './Components/UserManagement/AuthPage.jsx';
 import DatabaseCheck from './Components/Interactivity&Engagement/DatabaseCheck.jsx';
 import ProfileUpdate from './Components/UserManagement/ProfileUpdate.jsx';
 import TaskCorner from './Components/SkillSharing/TaskCorner.jsx';
-import { LayoutDashboard } from 'lucide-react';
 import Posts from './Components/SkillSharing/Posts';
+import Layout from "./Components/Navigation/Layout";
+import PostsView from "./Components/SkillSharing/PostsView";
 
 
 function App() {
@@ -17,18 +18,20 @@ function App() {
       
       {/*User routes*/}
       <Route path="/" element={<AuthPage />} />
-      <Route path="/home" element={<Home />} />
+      <Route path="/home" element={ <Layout>  <Home /> </Layout>} />
       <Route path="/profile" element={<ProfileUpdate />} />
       
 
       {/*skillsharing routes*/}
-      <Route path="/Task-Corner" element={<TaskCorner />} />
-      <Route path="/posts" element={<Posts />} />
+      <Route path="/TaskCorner" element={<TaskCorner />} />
+      <Route path="/postview" element= {<Layout>  <PostsView /> </Layout>} />
+      <Route path="/post" element= {<Layout>  <Posts /> </Layout>} />
+      
 
       {/*Interactivity routes*/}
       <Route path="/test-database-connection" element={<DatabaseCheck />} />
 
-      {/*UserManagement routes*/}
+
 
 
 

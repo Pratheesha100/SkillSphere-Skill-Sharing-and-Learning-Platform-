@@ -27,9 +27,14 @@ public class MediaService {
     private final String UPLOAD_DIR = "uploads/"; // Directory to store uploaded files
 
     @Transactional
-    public MediaDTO uploadMedia(MultipartFile file, Long postId, String mediaType) throws IOException {
+    public MediaDTO uploadMedia(MultipartFile file, Long postId, String mediaType, Long userId) throws IOException {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
+
+        // Authorization: Only the post owner can upload media
+        if (!post.getUser().getUserId().equals(userId)) {
+            throw new SecurityException("You are not authorized to upload media for this post.");
+        }
 
         // Save file to server
         String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();

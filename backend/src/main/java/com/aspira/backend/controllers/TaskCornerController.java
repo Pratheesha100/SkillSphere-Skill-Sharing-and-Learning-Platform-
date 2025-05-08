@@ -2,9 +2,12 @@ package com.aspira.backend.controllers;
 
 import com.aspira.backend.dto.TaskCornerDTO;
 import com.aspira.backend.service.TaskCornerService;
+import com.aspira.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
@@ -15,10 +18,14 @@ public class TaskCornerController {
     @Autowired
     private TaskCornerService taskCornerService;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping
-    public ResponseEntity<TaskCornerDTO> createTask(
-            @RequestBody TaskCornerDTO taskDTO,
-            @RequestParam Long userId) {
+    public ResponseEntity<TaskCornerDTO> createTask(@RequestBody TaskCornerDTO taskDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Long userId = userService.getUserByEmail(email).getUserId();
         TaskCornerDTO createdTask = taskCornerService.createTask(taskDTO, userId);
         return ResponseEntity.ok(createdTask);
     }
@@ -37,8 +44,11 @@ public class TaskCornerController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<TaskCornerDTO>> getAllTasksByUser(@PathVariable Long userId) {
+    @GetMapping("/me")
+    public ResponseEntity<List<TaskCornerDTO>> getAllTasksByUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Long userId = userService.getUserByEmail(email).getUserId();
         List<TaskCornerDTO> tasks = taskCornerService.getAllTasksByUser(userId);
         return ResponseEntity.ok(tasks);
     }
