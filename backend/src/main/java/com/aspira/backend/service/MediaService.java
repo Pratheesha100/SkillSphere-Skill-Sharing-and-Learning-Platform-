@@ -8,12 +8,15 @@ import com.aspira.backend.model.Post;
 import com.aspira.backend.repository.MediaRepository;
 import com.aspira.backend.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,7 +27,8 @@ public class MediaService {
     private final MediaRepository mediaRepository;
     private final PostRepository postRepository;
 
-    private final String UPLOAD_DIR = "uploads/"; // Directory to store uploaded files
+    @Value("${media.upload-dir:uploads/}")
+    private String uploadDir;
 
     @Transactional
     public MediaDTO uploadMedia(MultipartFile file, Long postId, String mediaType, Long userId) throws IOException {
@@ -36,15 +40,16 @@ public class MediaService {
             throw new SecurityException("You are not authorized to upload media for this post.");
         }
 
-        // Save file to server
-        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        File destinationFile = new File(UPLOAD_DIR + fileName);
-        destinationFile.getParentFile().mkdirs(); // Create directories if they don't exist
+        String originalFilename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";
+        String fileName = System.currentTimeMillis() + "_" + originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+        
+        File destinationFile = new File(Paths.get(uploadDir, fileName).toString());
+        destinationFile.getParentFile().mkdirs();
         file.transferTo(destinationFile);
 
         // Save media info in database
         Media media = new Media();
-        media.setMediaUrl(UPLOAD_DIR + fileName);
+        media.setMediaUrl(fileName);
         media.setMediaType(MediaType.valueOf(mediaType));
         media.setPost(post);
 
@@ -62,7 +67,15 @@ public class MediaService {
     private MediaDTO convertToDTO(Media media) {
         MediaDTO dto = new MediaDTO();
         dto.setMediaId(media.getMediaId());
-        dto.setMediaUrl(media.getMediaUrl());
+        
+        System.out.println("MediaService.convertToDTO: Filename from DB (media.getMediaUrl()): " + media.getMediaUrl());
+        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/media/files/")
+                .path(media.getMediaUrl())
+                .toUriString();
+        System.out.println("MediaService.convertToDTO: Constructed fileDownloadUri: " + fileDownloadUri);
+        dto.setMediaUrl(fileDownloadUri);
+        
         dto.setMediaType(media.getMediaType().name());
         dto.setPostId(media.getPost().getPostId());
         return dto;

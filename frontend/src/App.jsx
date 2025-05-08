@@ -3,7 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './Components/UserManagement/Home.jsx';
 import AuthPage from './Components/UserManagement/AuthPage.jsx';
 import DatabaseCheck from './Components/Interactivity&Engagement/DatabaseCheck.jsx';
-import ProfileUpdate from './Components/UserManagement/ProfileUpdate.jsx';
+import Profile from './Components/UserManagement/Profile.jsx';
 import TaskCorner from './Components/SkillSharing/TaskCorner.jsx';
 import Posts from './Components/SkillSharing/Posts';
 import Layout from "./Components/Navigation/Layout";
@@ -19,7 +19,7 @@ function App() {
       {/*User routes*/}
       <Route path="/" element={<AuthPage />} />
       <Route path="/home" element={ <Layout>  <Home /> </Layout>} />
-      <Route path="/profile" element={<ProfileUpdate />} />
+      <Route path="/profile" element={<Profile />} />
       
 
       {/*skillsharing routes*/}

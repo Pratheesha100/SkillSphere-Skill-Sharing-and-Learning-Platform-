@@ -24,9 +24,9 @@ const categories = [
 
 export default function Home() {
   return (
-    <div className="bg-[#ecedee] min-h-screen">
+    <div className="min-h-screen flex flex-col bg-[#ecedee]">
       {/* Header Section */}
-      <section className="bg-[#edf2fd] pt-8 pb-16">
+      <section className="bg-[#edf2fd] pt-8 pb-16 flex-1">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-10 px-4">
           {/* Left */}
           <div className="flex-1">
@@ -173,11 +173,11 @@ export default function Home() {
                   `hover:border-b-4 hover:border-b-blue-700 hover:border-x-0 hover:border-t-0`
                 }
                 style={{ boxShadow: "0 4px 24px rgba(128,128,128,0.18)" }}
-                whileHover={{ scale: 1.04 }}
+                whileHover={{ scale: 1.04, transition: { duration: 0.35, ease: 'easeInOut' } }}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.08 }}
+                transition={{ duration: 0.4, delay: idx * 0.01, ease: 'easeInOut' }}
               >
                 <div className="flex items-center justify-center w-14 h-14 rounded-full mb-4" style={{ background: '#cbc8ce' }}>
                   {React.cloneElement(cat.icon, { className: 'w-8 h-8 text-blue-800' })}

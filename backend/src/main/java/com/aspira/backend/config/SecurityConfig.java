@@ -1,6 +1,7 @@
 package com.aspira.backend.config;
 
 import com.aspira.backend.security.JwtAuthenticationFilter;
+import com.aspira.backend.security.RestAuthenticationEntryPoint;
 import com.aspira.backend.service.CustomOAuth2UserService;
 import com.aspira.backend.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +15,12 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -27,12 +29,14 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Authentication endpoints
                          .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/error", "/api/greeting").permitAll()
@@ -41,6 +45,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // Explicitly for POST /api/users (user creation)
                 .requestMatchers(HttpMethod.GET, "/api/users/email").permitAll() // If you also have /api/users/email endpoint for GET
                 .requestMatchers(HttpMethod.GET, "/api/users/{userId:\\d+}").permitAll() // For public user profiles
+                .requestMatchers(HttpMethod.GET, "/api/media/files/**").permitAll() // Allow public access to media files
 
                         // Interactivity module
                         .requestMatchers("/api/users/**").permitAll()
@@ -61,15 +66,20 @@ public class SecurityConfig {
 
                         // Game Hub module
                         // Add your game hub module endpoints here
+                        .anyRequest().authenticated()
                         )
                         .oauth2Login(oauth2 -> oauth2
                             .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                             )
                             .defaultSuccessUrl("http://localhost:5173/home", true)
-                        );
-                    return http.build();
-                }
+                        )
+                .exceptionHandling(exceptions -> exceptions
+                    .authenticationEntryPoint(restAuthenticationEntryPoint)
+                )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
 
      @Bean
     public UserDetailsService userDetailsService() {
@@ -94,6 +104,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    }
+}
 
 

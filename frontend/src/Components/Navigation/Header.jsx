@@ -34,7 +34,7 @@ function Header() {
           <motion.button
             key={link.name}
             onClick={() => navigate(link.path)}
-            className={`relative font-medium transition-colors duration-200 ${
+            className={`relative font-medium text-sm transition-colors duration-200 ${
               isActive(link.path)
                 ? "text-blue-600"
                 : "text-gray-700 hover:text-blue-500"
@@ -71,13 +71,13 @@ function Header() {
         </motion.button>
         <button
           onClick={() => navigate("/login")}
-          className="px-4 py-1.5 rounded-md border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
+          className="px-4 py-1.5 rounded-md border text-sm border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
         >
           Log In
         </button>
         <button
           onClick={() => navigate("/signup")}
-          className="px-4 py-1.5 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+          className="px-4 py-1.5 rounded-md bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition"
         >
           Sign Up
         </button>

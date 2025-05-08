@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.util.List;
+import com.aspira.backend.dto.MediaDTO;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +13,7 @@ public class PostDTO {
 
     private Long postId; 
     private List<String> hashtags; // List of hashtags associated with the post
+    private List<MediaDTO> mediaList;
 
     @NotBlank(message = "Category is required")
     private String category;
