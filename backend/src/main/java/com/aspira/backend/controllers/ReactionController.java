@@ -2,10 +2,14 @@ package com.aspira.backend.controllers;
 
 import com.aspira.backend.dto.ReactionDTO;
 import com.aspira.backend.service.ReactionService;
+import com.aspira.backend.service.UserService;
+import com.aspira.backend.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
@@ -15,9 +19,14 @@ import java.util.List;
 public class ReactionController {
 
     private final ReactionService reactionService;
+    private final UserService userService;
 
     @PostMapping
     public ResponseEntity<ReactionDTO> createReaction(@RequestBody ReactionDTO reactionDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+        reactionDTO.setUserId(user.getUserId());
         ReactionDTO createdReaction = reactionService.createReaction(reactionDTO);
         return new ResponseEntity<>(createdReaction, HttpStatus.CREATED);
     }
@@ -31,19 +40,21 @@ public class ReactionController {
     @PutMapping("/{reactionId}")
     public ResponseEntity<ReactionDTO> updateReaction(
             @PathVariable Long reactionId,
-            @RequestParam Long userId,
             @RequestParam String newReactionType) {
-        
-        ReactionDTO updatedReaction = reactionService.updateReaction(reactionId, userId, newReactionType);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+        ReactionDTO updatedReaction = reactionService.updateReaction(reactionId, user.getUserId(), newReactionType);
         return ResponseEntity.ok(updatedReaction);
     }
 
     @DeleteMapping("/{reactionId}")
     public ResponseEntity<Void> removeReaction(
-            @PathVariable Long reactionId,
-            @RequestParam Long userId) {
-        
-        reactionService.removeReaction(reactionId, userId);
+            @PathVariable Long reactionId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+        reactionService.removeReaction(reactionId, user.getUserId());
         return ResponseEntity.noContent().build();
     }
 }

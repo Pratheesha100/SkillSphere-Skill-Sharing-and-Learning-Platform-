@@ -108,9 +108,7 @@ const LoginForm = ({ onSuccess }) => {
       if (response.status === 200) {
         // Store the token in localStorage
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Call the success callback without showing success alert
+        localStorage.setItem('user', JSON.stringify({ name: response.data.name }));
         onSuccess();
       }
     } catch (error) {

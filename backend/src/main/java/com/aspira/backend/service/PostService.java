@@ -1,6 +1,7 @@
 package com.aspira.backend.service;
 
 import com.aspira.backend.dto.PostDTO;
+import com.aspira.backend.dto.MediaDTO;
 import com.aspira.backend.exception.ResourceNotFoundException;
 import com.aspira.backend.exception.UnauthorizedException;
 import com.aspira.backend.model.Hashtag;
@@ -39,6 +40,7 @@ public class PostService {
     private final UserRepository userRepository;// Inject UserRepository for user management
     private final HashtagRepository hashtagRepository;// Inject HashtagRepository for hashtag management
     private final EntityManager entityManager; // Inject EntityManager for Hibernate Search
+    private final MediaService mediaService; // Inject MediaService
 
     // Extract hashtags from the content using regex
     // This method uses regex to find hashtags in the content string.
@@ -127,8 +129,8 @@ public class PostService {
                     .orElseGet(() -> hashtagRepository.save(new Hashtag(tagName)));
             hashtags.add(hashtag);
         }
-        Post post = new Post();
-        post.setHashtags(hashtags);
+        // Assign the updated set of hashtags to the existing post
+        existingPost.setHashtags(hashtags);
 
         // Update fields in the entity
         existingPost.setCategory(postDTO.getCategory());
@@ -207,8 +209,12 @@ public class PostService {
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUserId(post.getUser().getUserId());
         dto.setViews(post.getViews());
-        dto.setCreatedAt(post.getCreatedAt());
         dto.setRankScore(post.getRankScore());
+
+        // Fetch and set media list
+        List<MediaDTO> mediaList = mediaService.getMediaByPostId(post.getPostId());
+        dto.setMediaList(mediaList);
+
         return dto;
     }
 
