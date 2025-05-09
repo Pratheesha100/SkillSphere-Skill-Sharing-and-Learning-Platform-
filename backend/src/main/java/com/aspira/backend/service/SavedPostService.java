@@ -55,28 +55,24 @@ public class SavedPostService {
     }
 
     @Transactional
-    public void deleteSavedPost(Long savedPostId) {
-        // Check if the saved post exists
-        if (!savedPostRepository.existsById(savedPostId)) {
-            throw new ResourceNotFoundException("Saved post not found with id: " + savedPostId);
+    public void deleteSavedPost(Long savedPostId, Long userId) {
+        SavedPost savedPost = savedPostRepository.findById(savedPostId)
+                .orElseThrow(() -> new ResourceNotFoundException("Saved post not found with id: " + savedPostId));
+        if (!savedPost.getUser().getUserId().equals(userId)) {
+            throw new SecurityException("You are not authorized to delete this saved post.");
         }
-        // Delete the saved post from the database
         savedPostRepository.deleteById(savedPostId);
     }
 
     @Transactional
-    public SavedPostDTO updateSavedPostCategory(Long savedPostId, String newCategory) {
-        // Check if the saved post exists
+    public SavedPostDTO updateSavedPostCategory(Long savedPostId, String newCategory, Long userId) {
         SavedPost savedPost = savedPostRepository.findById(savedPostId)
                 .orElseThrow(() -> new ResourceNotFoundException("Saved post not found with id: " + savedPostId));
-
-        // Update the category of the saved post
+        if (!savedPost.getUser().getUserId().equals(userId)) {
+            throw new SecurityException("You are not authorized to update this saved post.");
+        }
         savedPost.setCategory(newCategory);
-
-        // Save changes to the database
         SavedPost updatedSavedPost = savedPostRepository.save(savedPost);
-
-        // Convert the updated entity to DTO and return it
         return convertToDTO(updatedSavedPost);
     }
 

@@ -2,10 +2,14 @@ package com.aspira.backend.controllers;
 
 import com.aspira.backend.dto.PostDTO;
 import com.aspira.backend.service.PostService;
+import com.aspira.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.aspira.backend.model.User;
 
 import java.util.List;
 
@@ -14,18 +18,21 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final UserService userService;
 
-    // Constructor injection for PostService
-    public PostController(PostService postService) {
+    // Constructor injection for PostService and UserService
+    public PostController(PostService postService, UserService userService) {
         this.postService = postService;
+        this.userService = userService;
     }
 
     // Create a new post
-    @PostMapping("/{userId}")
-    public ResponseEntity<PostDTO> createPost(
-            @PathVariable Long userId,
-            @Valid @RequestBody PostDTO postDTO) {
-        PostDTO createdPost = postService.createPost(userId, postDTO);
+    @PostMapping
+    public ResponseEntity<PostDTO> createPost(@Valid @RequestBody PostDTO postDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+        PostDTO createdPost = postService.createPost(user.getUserId(), postDTO);
         return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
     }
 
@@ -72,24 +79,25 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-    // Get posts by media type (e.g., image, video)
+    // Update a post
     @PutMapping("/{postId}")
     public ResponseEntity<PostDTO> updatePost(
             @PathVariable Long postId,
-            @RequestParam Long userId,
             @Valid @RequestBody PostDTO postDTO) {
-
-        PostDTO updatedPost = postService.updatePost(postId, userId, postDTO);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+        PostDTO updatedPost = postService.updatePost(postId, user.getUserId(), postDTO);
         return ResponseEntity.ok(updatedPost);
     }
 
     // Delete a post
     @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(
-            @PathVariable Long postId,
-            @RequestParam Long userId) {
-
-        postService.deletePost(postId, userId);
+    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+        postService.deletePost(postId, user.getUserId());
         return ResponseEntity.noContent().build();
     }
 

@@ -12,6 +12,7 @@ public class PostDTO {
 
     private Long postId; 
     private List<String> hashtags; // List of hashtags associated with the post
+    private List<MediaDTO> mediaList;
 
     @NotBlank(message = "Category is required")
     private String category;

@@ -1,6 +1,7 @@
 package com.aspira.backend.config;
 
 import com.aspira.backend.security.JwtAuthenticationFilter;
+import com.aspira.backend.security.RestAuthenticationEntryPoint;
 import com.aspira.backend.service.CustomOAuth2UserService;
 import com.aspira.backend.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
@@ -28,61 +29,63 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults())
-            .authorizeHttpRequests(auth -> auth
-                // Permit all OPTIONS requests for CORS preflight
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                // Auth module & specific public API endpoints
-                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/error", "/api/greeting").permitAll()
-                .requestMatchers("/test-database-connection").permitAll() // Consolidated duplicate
-                
-                // User related public endpoints
-                .requestMatchers("/api/users/check-email").permitAll() // Explicitly for GET /api/users/check-email from logs
+                .csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // Authentication endpoints
+                         .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/error", "/api/greeting").permitAll()
+                       
+                         .requestMatchers("/api/users/check-email").permitAll() // Explicitly for GET /api/users/check-email from logs
                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // Explicitly for POST /api/users (user creation)
                 .requestMatchers(HttpMethod.GET, "/api/users/email").permitAll() // If you also have /api/users/email endpoint for GET
                 .requestMatchers(HttpMethod.GET, "/api/users/{userId:\\d+}").permitAll() // For public user profiles
-                
-                // Other broadly permitted modules from your previous config
-                .requestMatchers("/api/users/**").permitAll() // Covers other /api/users GET requests if any
-                .requestMatchers("/api/posts/**").permitAll()
-                .requestMatchers("/api/media/**").permitAll()
-                .requestMatchers("/api/reactions/**").permitAll()
-                .requestMatchers("/api/savedPosts/**").permitAll()
-                .requestMatchers("/api/comments/**").permitAll()
-                .requestMatchers("/api/notifications/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/media/files/**").permitAll() // Allow public access to media files
 
+                        // Interactivity module
+                        .requestMatchers("/api/users/**").permitAll()
+                        .requestMatchers("/api/posts/**").authenticated()
+                        .requestMatchers("/api/media/**").authenticated()
+                        .requestMatchers("/api/reactions/**").authenticated()
+                        .requestMatchers("/api/saved-posts/**").authenticated()
+                        .requestMatchers("/api/comments/**").authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated()
+                        .requestMatchers("/test-database-connection").authenticated()
 
-                //Skill share module
-                //Group module
-                //Game hub module
+                        // Skill share module
+                        .requestMatchers("/api/tasks/**").authenticated()
+                        // Add your skill share module endpoints here
 
-                
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // For JWT
-            )
-            .authenticationProvider(authenticationProvider()) 
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService)
+                        // Group module
+                        // Add your group module endpoints here
+
+                        // Game Hub module
+                        // Add your game hub module endpoints here
+                        .anyRequest().authenticated()
+                        )
+                        .oauth2Login(oauth2 -> oauth2
+                            .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                            )
+                            .defaultSuccessUrl("http://localhost:5173/home", true)
+                        )
+                .exceptionHandling(exceptions -> exceptions
+                    .authenticationEntryPoint(restAuthenticationEntryPoint)
                 )
-                .defaultSuccessUrl("http://localhost:5173/home", true)
-            );
-
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    @Bean
+     @Bean
     public UserDetailsService userDetailsService() {
         return customUserDetailsService;
     }
+   
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

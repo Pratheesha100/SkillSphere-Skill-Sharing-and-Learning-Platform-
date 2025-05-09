@@ -2,6 +2,7 @@ package com.aspira.backend.controllers;
 
 import com.aspira.backend.dto.NotificationDTO;
 import com.aspira.backend.service.NotificationService;
+import com.aspira.backend.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,37 +15,35 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
 
     private final NotificationService notificationService;
+    private final UserService userService;
 
     @PostMapping
     public ResponseEntity<NotificationDTO> createNotification(@RequestBody NotificationDTO notificationDTO) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Long userId = userService.getUserByEmail(email).getUserId();
+        notificationDTO.setUserId(userId);
         NotificationDTO createdNotification = notificationService.createNotification(notificationDTO);
-
-                createdNotification.add(linkTo(methodOn(NotificationController.class)
-                .getNotificationsByUser(createdNotification.getUserId()))
-                .withRel("user-notifications"));
-
-                createdNotification.add(linkTo(methodOn(NotificationController.class)
-                .markAsRead(createdNotification.getNotificationId()))
-                .withRel("mark-as-read"));
-
-                createdNotification.add(linkTo(methodOn(NotificationController.class)
-                .deleteNotification(createdNotification.getNotificationId()))
-                .withRel("delete-notification"));
-
+        addLinks(createdNotification);
         return new ResponseEntity<>(createdNotification, HttpStatus.CREATED);
     }
 
-
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<NotificationDTO>> getNotificationsByUser(@PathVariable Long userId) {
+    @GetMapping
+    public ResponseEntity<List<NotificationDTO>> getNotificationsByUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Long userId = userService.getUserByEmail(email).getUserId();
         List<NotificationDTO> notifications = notificationService.getNotificationsByUserId(userId);
-         notifications.forEach(this::addLinks);
+        notifications.forEach(this::addLinks);
         return ResponseEntity.ok(notifications);
     }
 
@@ -60,17 +59,14 @@ public class NotificationController {
         return ResponseEntity.noContent().build();
     }
 
-
     // Helper method to add HATEOAS links to a NotificationDTO
     private void addLinks(NotificationDTO notification) {
         notification.add(linkTo(methodOn(NotificationController.class)
-                .getNotificationsByUser(notification.getUserId()))
+                .getNotificationsByUser())
                 .withRel("user-notifications"));
-
         notification.add(linkTo(methodOn(NotificationController.class)
                 .markAsRead(notification.getNotificationId()))
                 .withRel("mark-as-read"));
-
         notification.add(linkTo(methodOn(NotificationController.class)
                 .deleteNotification(notification.getNotificationId()))
                 .withRel("delete-notification"));
