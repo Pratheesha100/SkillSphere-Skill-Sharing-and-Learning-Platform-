@@ -1,11 +1,20 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive",
-    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable",
-    "java.compile.nullAnalysis.mode": "disabled",
-    "java.jdt.ls.java.home": "",
-    "java.project.sourcePaths": [
-        "src/main/java",
-        "target/generated-sources/annotations"
-    ],
-    "java.maven.downloadSources": false
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable",
+  "java.compile.nullAnalysis.mode": "disabled",
+  "java.jdt.ls.java.home": "",
+  "java.project.sourcePaths": [
+    "src/main/java",
+    "target/generated-sources/annotations"
+  ],
+  "java.maven.downloadSources": false,
+  "task.allowAutomaticTasks": true,
+  "debug.openDebug": "neverOpen",
+  "terminal.integrated.inheritEnv": false,
+  "tasks": {
+    "label": "lint on open",
+    "type": "shell",
+    "command": "npm run lint",
+    "runOn": "folderOpen"
+  }
 }
