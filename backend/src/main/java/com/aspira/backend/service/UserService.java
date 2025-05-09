@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,6 +20,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Transactional
     // Create a new user
@@ -64,9 +67,14 @@ public class UserService {
 
     // Get user by username
     public List<UserDTO> getAllUsers() {
+        try {
         return userRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error fetching all users", e);
+            throw new RuntimeException("Failed to fetch users", e);
+        }
     }
 
     @Transactional
@@ -135,7 +143,7 @@ public class UserService {
     }
 
     // Convert User entity to UserDTO
-    private UserDTO convertToDTO(User user) {
+    public UserDTO convertToDTO(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(user.getUserId());
         userDTO.setName(user.getName());
@@ -143,6 +151,7 @@ public class UserService {
         userDTO.setEmail(user.getEmail());
         userDTO.setOccupation(user.getOccupation());
         userDTO.setBirthday(user.getBirthday());
+        userDTO.setProvider(user.getProvider());
         return userDTO;
     }
 }

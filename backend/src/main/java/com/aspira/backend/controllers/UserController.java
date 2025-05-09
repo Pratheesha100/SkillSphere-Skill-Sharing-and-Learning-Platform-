@@ -2,8 +2,11 @@ package com.aspira.backend.controllers;
 
 import com.aspira.backend.dto.UserDTO;
 import com.aspira.backend.exception.ResourceNotFoundException;
+import com.aspira.backend.model.User;
 import com.aspira.backend.service.UserService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -16,13 +19,11 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
 
     @PostMapping
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
@@ -40,10 +41,17 @@ public class UserController {
         return ResponseEntity.ok(userDTO);
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
+        try {
+            log.debug("Fetching all users");
         List<UserDTO> users = userService.getAllUsers();
+            log.debug("Found {} users", users.size());
         return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            log.error("Error fetching all users", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PutMapping("/me/profile")
@@ -74,6 +82,15 @@ public class UserController {
     public ResponseEntity<Map<String, Boolean>> checkEmailExists(@RequestParam String email) {
         boolean exists = userService.existsByEmail(email);
         return ResponseEntity.ok(Collections.singletonMap("exists", exists));
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserDTO> getUserProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+        UserDTO userDTO = userService.convertToDTO(user);
+        return ResponseEntity.ok(userDTO);
     }
 
 }

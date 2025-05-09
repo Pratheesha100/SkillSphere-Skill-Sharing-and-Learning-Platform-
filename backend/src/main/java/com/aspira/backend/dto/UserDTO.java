@@ -2,10 +2,14 @@ package com.aspira.backend.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserDTO {
     private Long userId;
     

@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Search, Smile, Users, BookOpen, Camera, Music, BarChart2, Cpu, Layers, Award } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import laying from "../../assets/Float.png";
 import studying from "../../assets/Studying.png";
 
@@ -23,6 +24,12 @@ const categories = [
 ];
 
 export default function Home() {
+  const navigate = useNavigate();
+
+  const handleGroupClick = () => {
+    navigate('/groups');
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#ecedee]">
       {/* Header Section */}
@@ -37,7 +44,6 @@ export default function Home() {
               className="text-4xl md:text-5xl font-extrabold text-[#18181b] mb-4 leading-tight"
             >
              Empower Your Skills, Share Your Knowledge
-
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
