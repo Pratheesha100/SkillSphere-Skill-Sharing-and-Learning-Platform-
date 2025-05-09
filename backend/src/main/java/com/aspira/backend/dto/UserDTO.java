@@ -9,12 +9,11 @@ import java.time.LocalDate;
 public class UserDTO {
     private Long userId;
     
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 100)
+    @Size(max = 100, message = "Name must be less than 100 characters")
     private String name;
     
     @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 50)
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
     
     @NotBlank(message = "Email is required")
@@ -22,8 +21,7 @@ public class UserDTO {
     @Size(max = 100)
     private String email;
     
-    @NotBlank(message = "Password is required")
-    @Size(min = 8)
+    @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
     
     @Size(max = 100)
@@ -31,4 +29,6 @@ public class UserDTO {
     
     @Past
     private LocalDate birthday;
+
+    private String provider;
 }

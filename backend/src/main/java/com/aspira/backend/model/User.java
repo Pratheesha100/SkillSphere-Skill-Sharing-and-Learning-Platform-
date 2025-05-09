@@ -2,6 +2,7 @@ package com.aspira.backend.model;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -33,8 +34,11 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false)
-    private String passwordHash;
+    @Column(nullable = true)
+    private String passwordHash; // Nullable for OAuth2 users
+
+    @Column
+    private String provider; // "local", "google", "facebook"
 
     @Column(length = 100)
     private String occupation;  // User's profession/job title
@@ -60,6 +64,11 @@ public class User {
     private List<SavedPost> savedPosts = new ArrayList<>();
 
     @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
 
