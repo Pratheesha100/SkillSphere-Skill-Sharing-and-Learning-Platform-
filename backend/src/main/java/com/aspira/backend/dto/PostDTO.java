@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.util.List;
-import com.aspira.backend.dto.MediaDTO;
 
 import java.time.LocalDateTime;
 

@@ -56,6 +56,16 @@ public class MediaController {
         return ResponseEntity.ok(mediaList);
     }
 
+    // Delete a media file (authenticated user, owner of the post)
+    @DeleteMapping("/{mediaId}")
+    public ResponseEntity<Void> deleteMedia(@PathVariable Long mediaId) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userService.getUserByEmail(email);
+        mediaService.deleteMedia(mediaId, user.getUserId());
+        return ResponseEntity.noContent().build();
+    }
+
     // Serve uploaded files
     @GetMapping("/files/{filename:.+}")
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {

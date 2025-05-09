@@ -129,8 +129,8 @@ public class PostService {
                     .orElseGet(() -> hashtagRepository.save(new Hashtag(tagName)));
             hashtags.add(hashtag);
         }
-        Post post = new Post();
-        post.setHashtags(hashtags);
+        // Assign the updated set of hashtags to the existing post
+        existingPost.setHashtags(hashtags);
 
         // Update fields in the entity
         existingPost.setCategory(postDTO.getCategory());
