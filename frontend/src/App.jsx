@@ -28,6 +28,7 @@ import AuthNav from './Components/UserManagement/AuthNav';
 import LoginForm from './Components/UserManagement/LoginForm';
 import SignupForm from './Components/UserManagement/SignupForm';
 import GameHub from './Components/GameHub/GameHub';
+import AdminDashboard from './Components/GameHub/Admin/AddGame';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -59,7 +60,8 @@ function App() {
       <Route path="/api/games/memory-match/edit/:id" element={<EditMemoryMatchGame />} />
 
       {/* GameHub Admin routes */}
-      <Route path="/admin/add-game" element={<AddGame />} />
+      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/admin/add-game" element={<AdminDashboard />} />
       <Route path="/admin/add-mcq-set" element={<AddMCQSet />} />
       <Route path="/admin/add-memory-match-game" element={<AddMemoryMatchGame />} />
       <Route path="/admin/edit-game/:id" element={<EditMcqGame />} />

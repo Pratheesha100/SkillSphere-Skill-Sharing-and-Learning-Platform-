@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const QuizCard = ({ question, options, onAnswer, isLastQuestion }) => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
+
+  // Reset states when question changes
+  useEffect(() => {
+    setSelectedOption(null);
+    setIsAnswered(false);
+  }, [question]); // Reset when question changes
 
   const handleOptionClick = (option) => {
     if (isAnswered) return;
@@ -75,4 +81,4 @@ const QuizCard = ({ question, options, onAnswer, isLastQuestion }) => {
   );
 };
 
-export default QuizCard; 
+export default QuizCard;
