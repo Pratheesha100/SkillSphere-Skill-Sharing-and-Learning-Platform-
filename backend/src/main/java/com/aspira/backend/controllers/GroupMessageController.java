@@ -52,4 +52,35 @@ public class GroupMessageController {
         List<GroupMessageDTO> messages = messageService.getMessages(groupId);
         return ResponseEntity.ok(messages);
     }
+
+    @PutMapping("/{groupId}/messages/{messageId}")
+    public ResponseEntity<GroupMessageDTO> editMessage(
+            @PathVariable Long groupId,
+            @PathVariable Long messageId,
+            @RequestBody String newContent,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = userService.getUserByEmail(userDetails.getUsername()).getUserId();
+
+        if (!groupService.isUserMemberOfGroup(groupId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        GroupMessageDTO updatedMessage = messageService.editMessage(groupId, messageId, userId, newContent);
+        return ResponseEntity.ok(updatedMessage);
+    }
+
+    @DeleteMapping("/{groupId}/messages/{messageId}")
+    public ResponseEntity<Void> deleteMessage(
+            @PathVariable Long groupId,
+            @PathVariable Long messageId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = userService.getUserByEmail(userDetails.getUsername()).getUserId();
+
+        if (!groupService.isUserMemberOfGroup(groupId, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        messageService.deleteMessage(groupId, messageId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

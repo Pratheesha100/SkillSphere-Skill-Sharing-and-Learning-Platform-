@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,20 +26,34 @@ public class GroupMessageService {
 
     @Transactional
     public GroupMessageDTO sendMessage(Long groupId, Long userId, String content) {
-        CHGroup group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
-
-        User sender = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        try {
+            CHGroup group = groupRepository.findById(groupId).orElseThrow(() -> new ResourceNotFoundException("Group not found"));
 
         GroupMessage message = new GroupMessage();
         message.setGroup(group);
-        message.setSender(sender);
+            message.setSender(userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found")));
         message.setContent(content);
+            message.setSentAt(LocalDateTime.now());
 
-        messageRepository.save(message);
+            // Determine sender type
+            String senderType = group.getMembers().stream()
+                    .anyMatch(member -> member.getUserId().equals(userId))
+                    ? "GROUP_MEMBER" : "USER";
 
-        return convertToDTO(message);
+            GroupMessage savedMessage = messageRepository.save(message);
+
+            return GroupMessageDTO.builder()
+                    .id(savedMessage.getId())
+                    .groupId(savedMessage.getGroup().getId())
+                    .senderId(savedMessage.getSender().getId())
+                    .senderName(savedMessage.getSender().getName())
+                    .content(savedMessage.getContent())
+                    .sentAt(savedMessage.getSentAt())
+                    .senderType(senderType)
+                    .build();
+        } catch (Exception e) {
+            throw new RuntimeException("Error sending message", e);
+        }
     }
 
     @Transactional(readOnly = true)
@@ -57,5 +72,35 @@ public class GroupMessageService {
         dto.setContent(message.getContent());
         dto.setSentAt(message.getSentAt());
         return dto;
+        } catch (Exception e) {
+            throw new RuntimeException("Error converting message to DTO", e);
+        }
+    }
+
+    @Transactional
+    public GroupMessageDTO editMessage(Long groupId, Long messageId, Long userId, String newContent) {
+        GroupMessage message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+
+        if (!message.getGroup().getId().equals(groupId) || !message.getSender().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("User not authorized to edit this message");
+        }
+
+        message.setContent(newContent);
+        GroupMessage updatedMessage = messageRepository.save(message);
+
+        return convertToDTO(updatedMessage);
+    }
+
+    @Transactional
+    public void deleteMessage(Long groupId, Long messageId, Long userId) {
+        GroupMessage message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+
+        if (!message.getGroup().getId().equals(groupId) || !message.getSender().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("User not authorized to delete this message");
+        }
+
+        messageRepository.delete(message);
     }
 }
