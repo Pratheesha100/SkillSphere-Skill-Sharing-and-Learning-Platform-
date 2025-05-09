@@ -106,11 +106,16 @@ const LoginForm = ({ onSuccess }) => {
       });
 
       if (response.status === 200) {
-        // Store the token in localStorage
+        // Store the token and user data
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('userId', response.data.userId);
+        localStorage.setItem('user', JSON.stringify({
+          userId: response.data.userId,
+          name: response.data.name,
+          email: response.data.email
+        }));
         
-        // Call the success callback without showing success alert
+        // Call the success callback
         onSuccess();
       }
     } catch (error) {

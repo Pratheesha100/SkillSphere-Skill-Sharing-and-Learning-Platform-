@@ -12,7 +12,7 @@ public class GroupMessage {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "group_id", nullable = false)
-    private Group group;
+    private UserGroup group;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sender_id", nullable = false)
@@ -33,11 +33,11 @@ public class GroupMessage {
         this.messageId = messageId;
     }
 
-    public Group getGroup() {
+    public UserGroup getGroup() {
         return group;
     }
 
-    public void setGroup(Group group) {
+    public void setGroup(UserGroup group) {
         this.group = group;
     }
 

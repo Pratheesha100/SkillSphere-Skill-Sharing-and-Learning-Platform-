@@ -23,7 +23,7 @@ public class GroupMessageController {
     @GetMapping
     public ResponseEntity<?> getGroupMessages(@PathVariable Long groupId) {
         try {
-            List<GroupMessage> messages = groupMessageService.getGroupMessages(groupId);
+            List<GroupMessage> messages = groupMessageService.getMessagesByGroupId(groupId);
             return ResponseEntity.ok(messages);
         } catch (Exception e) {
             return ResponseEntity.badRequest()

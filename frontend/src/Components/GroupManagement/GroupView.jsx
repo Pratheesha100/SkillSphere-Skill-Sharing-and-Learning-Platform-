@@ -1,110 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './GroupView.css';
 
-function GroupView() {
+const GroupView = () => {
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
-    const { userId } = useParams();
 
     useEffect(() => {
-        const fetchGroups = async () => {
-            if (!userId) {
-                setError('User ID is required');
-                setLoading(false);
-                return;
-            }
+        fetchGroups();
+    }, []);
 
+        const fetchGroups = async () => {
             try {
                 setLoading(true);
                 setError(null);
                 
-                const response = await fetch(`http://localhost:8080/api/groups/user/${userId}`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to fetch groups');
-                }
-
-                const data = await response.json();
-                setGroups(data);
-            } catch (err) {
-                setError(err.message || 'Failed to load groups');
-                setGroups([]);
-            } finally {
-                setLoading(false);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                navigate('/login');
+                return;
             }
-        };
 
-        fetchGroups();
-    }, [userId]);
-
-    const handleCreateGroup = () => {
-        if (!userId) {
-            setError('User ID is required to create a group');
-            return;
-        }
-        navigate(`/create-group/${userId}`);
-    };
-
-    const handleDeleteGroup = async (groupId) => {
-        if (!window.confirm('Are you sure you want to delete this group?')) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`http://localhost:8080/api/groups/${groupId}?userId=${userId}`, {
-                method: 'DELETE',
+            // Fetch all groups where the user is admin (created by user)
+            const response = await axios.get('http://localhost:8080/api/user-groups', {
                 headers: {
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 }
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Delete group error response:', errorData);
-                throw new Error(errorData.error || `Failed to delete group (Status: ${response.status})`);
-            }
-
-            setGroups(prevGroups => prevGroups.filter(group => group.groupId !== groupId));
+            // Filter groups where the current user is the admin
+            const user = JSON.parse(localStorage.getItem('user'));
+            const userId = user?.userId;
+            const adminGroups = (response.data || []).filter(group => group.admin?.userId === userId);
+            setGroups(adminGroups);
         } catch (err) {
-            console.error('Error in handleDeleteGroup:', err);
-            setError(err.message);
+            console.error('Error fetching groups:', err);
+            let errorMessage = 'Failed to fetch groups';
+            
+            if (err.response) {
+                if (err.response.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    navigate('/login');
+                    return;
+                }
+                errorMessage = err.response.data?.error || err.response.data?.message || `Server error: ${err.response.status}`;
+            } else if (err.request) {
+                errorMessage = 'No response from server. Please check if the server is running.';
+            }
+            setError(errorMessage);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleAddMembers = (groupId) => {
-        if (!userId) {
-            setError('User ID is required to add members');
-            return;
-        }
-        navigate(`/groups/${groupId}/add-members/${userId}`);
+    const handleCreateGroup = () => {
+        navigate('/create-group');
     };
 
-    const handleUpdateGroup = (groupId) => {
-        if (!userId) {
-            setError('User ID is required to update group');
-            return;
-        }
-        navigate(`/update-group/${groupId}/${userId}`);
+    const handleAddMember = (groupId) => {
+        navigate(`/groups/${groupId}/add-member`);
     };
-
-    if (!userId) {
-        return <div className="error">Error: User ID is required</div>;
-    }
 
     if (loading) {
         return (
             <div className="loading-container">
-                <div className="loading">Loading your groups...</div>
+                <div className="loading">Loading groups...</div>
             </div>
         );
     }
@@ -112,8 +78,8 @@ function GroupView() {
     if (error) {
         return (
             <div className="error-container">
-                <div className="error">Error: {error}</div>
-                <button className="retry-btn" onClick={() => window.location.reload()}>
+                <div className="error">{error}</div>
+                <button onClick={fetchGroups} className="retry-btn">
                     Retry
                 </button>
             </div>
@@ -121,74 +87,38 @@ function GroupView() {
     }
 
     return (
-        <div className="group-view">
-            <div className="group-header">
-                <h1>My Groups</h1>
-                <button className="create-group-btn" onClick={handleCreateGroup}>
+        <div className="group-view-container">
+            <div className="group-view-header">
+                <h2>Groups You Created</h2>
+                <button onClick={handleCreateGroup} className="create-group-btn">
                     Create New Group
                 </button>
             </div>
             
-            <div className="groups-container">
                 {groups.length === 0 ? (
                     <div className="no-groups">
-                        <p>You are not a member of any groups yet.</p>
-                        <button className="create-group-btn" onClick={handleCreateGroup}>
-                            Create Your First Group
+                    <p>You haven't created any groups yet.</p>
+                    <button onClick={handleCreateGroup} className="create-group-btn">
+                        Create First Group
                         </button>
                     </div>
                 ) : (
-                    groups.map((group) => (
+                <div className="groups-list">
+                    {groups.map((group) => (
                         <div key={group.groupId} className="group-card">
-                            <h2>{group.groupName}</h2>
-                            <p className="group-description">{group.description}</p>
-                            <div className="group-meta">
-                                <span className="admin-info">
-                                    Admin: {group.admin?.name || 'Unknown Admin'}
-                                </span>
-                                <span className="members-count">
-                                    Members: {group.members?.length || 0}
-                                </span>
-                                <span className="created-date">
-                                    Created: {new Date(group.createdAt).toLocaleDateString()}
-                                </span>
-                            </div>
-                            <div className="group-actions">
+                            <h3>{group.groupName}</h3>
                                 <button 
-                                    onClick={() => navigate(`/groups/${group.groupId}/${userId}`)}
-                                    className="view-group-btn"
-                                >
-                                    View Group
-                                </button>
-                                {group.admin && group.admin.userId === parseInt(userId) && (
-                                    <>
-                                        <button 
-                                            onClick={() => handleUpdateGroup(group.groupId)}
-                                            className="update-group-btn"
+                                className="add-member-btn"
+                                onClick={() => handleAddMember(group.groupId)}
                                         >
-                                            Update
+                                Add Member
                                         </button>
-                                        <button 
-                                            onClick={() => handleAddMembers(group.groupId)}
-                                            className="add-members-btn"
-                                        >
-                                            Add Members
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDeleteGroup(group.groupId)}
-                                            className="delete-group-btn"
-                                        >
-                                            Delete
-                                        </button>
-                                    </>
-                                )}
-                            </div>
                         </div>
-                    ))
+                    ))}
+                </div>
                 )}
-            </div>
         </div>
     );
-}
+};
 
 export default GroupView; 

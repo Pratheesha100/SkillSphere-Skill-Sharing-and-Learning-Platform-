@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import './GroupChat.css';
 
 function GroupChat() {
-    const { groupId, userId } = useParams();
+    const { groupId } = useParams();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
@@ -12,16 +12,30 @@ function GroupChat() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        // Check if user is authenticated
+        if (!token || !user) {
+            navigate('/login');
+            return;
+        }
+
         const fetchMessages = async () => {
             try {
                 const response = await fetch(`http://localhost:8080/api/groups/${groupId}/messages`, {
                     headers: {
+                        'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     }
                 });
 
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        navigate('/login');
+                        return;
+                    }
                     throw new Error('Failed to fetch messages');
                 }
 
@@ -38,7 +52,7 @@ function GroupChat() {
         // Set up polling to fetch new messages every 5 seconds
         const interval = setInterval(fetchMessages, 5000);
         return () => clearInterval(interval);
-    }, [groupId]);
+    }, [groupId, navigate]);
 
     useEffect(() => {
         scrollToBottom();
@@ -52,10 +66,14 @@ function GroupChat() {
         e.preventDefault();
         if (!newMessage.trim()) return;
 
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user'));
+
         try {
-            const response = await fetch(`http://localhost:8080/api/groups/${groupId}/messages?senderId=${userId}`, {
+            const response = await fetch(`http://localhost:8080/api/groups/${groupId}/messages?senderId=${user.userId}`, {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
@@ -63,6 +81,10 @@ function GroupChat() {
             });
 
             if (!response.ok) {
+                if (response.status === 401) {
+                    navigate('/login');
+                    return;
+                }
                 throw new Error('Failed to send message');
             }
 
@@ -89,10 +111,12 @@ function GroupChat() {
         );
     }
 
+    const user = JSON.parse(localStorage.getItem('user'));
+
     return (
         <div className="chat-container">
             <div className="chat-header">
-                <button className="back-btn" onClick={() => navigate(`/home/${userId}`)}>
+                <button className="back-btn" onClick={() => navigate(`/groups/${user.userId}`)}>
                     ← Back to Groups
                 </button>
                 <h2>Group Chat</h2>
@@ -102,10 +126,10 @@ function GroupChat() {
                 {messages.map((message) => (
                     <div
                         key={message.messageId}
-                        className={`message ${message.sender.userId === parseInt(userId) ? 'sent' : 'received'}`}
+                        className={`message ${message.sender.userId === user.userId ? 'sent' : 'received'}`}
                     >
                         <div className="message-sender">
-                            {message.sender.userId === parseInt(userId) ? 'You' : message.sender.name}
+                            {message.sender.userId === user.userId ? 'You' : message.sender.name}
                         </div>
                         <div className="message-content">{message.content}</div>
                         <div className="message-time">
