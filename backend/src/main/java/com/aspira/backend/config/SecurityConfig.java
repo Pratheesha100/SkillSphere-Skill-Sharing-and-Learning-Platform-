@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -20,7 +21,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -30,27 +30,27 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
-    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+                .cors(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Authentication endpoints
-                        .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/error", "/api/greeting").permitAll()
-                        .requestMatchers("/api/users/check-email").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/email").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/users/{userId:\\d+}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/media/files/**").permitAll()
+                         .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/error", "/api/greeting").permitAll()
+                       
+                         .requestMatchers("/api/users/check-email").permitAll() // Explicitly for GET /api/users/check-email from logs
+                .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // Explicitly for POST /api/users (user creation)
+                .requestMatchers(HttpMethod.GET, "/api/users/email").permitAll() // If you also have /api/users/email endpoint for GET
+                .requestMatchers(HttpMethod.GET, "/api/users/{userId:\\d+}").permitAll() // For public user profiles
+                .requestMatchers(HttpMethod.GET, "/api/media/files/**").permitAll() // Allow public access to media files
 
                         // Interactivity module
                         .requestMatchers("/api/users/**").permitAll()
                         .requestMatchers("/api/posts/**").authenticated()
-                        .requestMatchers("/api/media/**").permitAll()
+                        .requestMatchers("/api/media/**").authenticated()
                         .requestMatchers("/api/reactions/**").authenticated()
                         .requestMatchers("/api/saved-posts/**").authenticated()
                         .requestMatchers("/api/comments/**").authenticated()
@@ -59,34 +59,34 @@ public class SecurityConfig {
 
                         // Skill share module
                         .requestMatchers("/api/tasks/**").authenticated()
+                        // Add your skill share module endpoints here
 
                         // Group module
-                        .requestMatchers(HttpMethod.GET, "/api/groups/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/groups/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/groups/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/groups/**").authenticated()
+                        .requestMatchers("/api/groups/**").authenticated()
 
                         // Game Hub module
+                        // Add your game hub module endpoints here
                         .requestMatchers("/api/users/all").authenticated()
                         .anyRequest().authenticated()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)
                         )
-                        .defaultSuccessUrl("http://localhost:5173/home", true)
-                )
+                        .oauth2Login(oauth2 -> oauth2
+                            .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                            )
+                            .defaultSuccessUrl("http://localhost:5173/home", true)
+                        )
                 .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(restAuthenticationEntryPoint)
+                    .authenticationEntryPoint(restAuthenticationEntryPoint)
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
-    @Bean
+     @Bean
     public UserDetailsService userDetailsService() {
         return customUserDetailsService;
     }
+   
 
     @Bean
     public AuthenticationProvider authenticationProvider() {

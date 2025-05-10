@@ -56,22 +56,4 @@ public class CHGroupController {
         CHGroup group = groupService.getGroupById(groupId);
         return ResponseEntity.ok(groupService.convertToDTO(group));
     }
-
-    @DeleteMapping("/admin/{groupId}")
-    public ResponseEntity<Void> deleteGroup(
-            @PathVariable Long groupId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        log.debug("Received request to delete group: {}", groupId);
-        log.debug("User attempting deletion: {}", userDetails.getUsername());
-        try {
-            Long adminId = userService.getUserByEmail(userDetails.getUsername()).getUserId();
-            log.debug("Admin ID for deletion: {}", adminId);
-            groupService.deleteGroup(groupId, adminId);
-            log.debug("Group {} deleted successfully", groupId);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            log.error("Error deleting group {}: {}", groupId, e.getMessage(), e);
-            throw e;
-        }
-    }
 } 

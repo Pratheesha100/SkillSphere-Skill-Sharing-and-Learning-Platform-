@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Users, Crown, UserPlus, UserMinus, Trash2 } from 'lucide-react';
+import { Plus, Users, Crown, UserPlus, UserMinus } from 'lucide-react';
 import Swal from 'sweetalert2';
 import api from '../../config/axios';
 import { Link } from 'react-router-dom';
@@ -192,37 +192,6 @@ const GroupView = () => {
     }
   };
 
-  const handleDeleteGroup = async (groupId) => {
-    try {
-      const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!'
-      });
-
-      if (result.isConfirmed) {
-        console.log('Attempting to delete group:', groupId);
-        const response = await api.delete(`/api/groups/${groupId}`);
-        console.log('Delete response:', response);
-        await fetchGroups();
-        Swal.fire('Deleted!', 'Group has been deleted.', 'success');
-      }
-    } catch (error) {
-      console.error('Error deleting group:', error);
-      const errorMessage = error.response?.data?.error || error.message || 'Failed to delete group';
-      console.error('Error details:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message
-      });
-      Swal.fire('Error', errorMessage, 'error');
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
@@ -284,13 +253,6 @@ const GroupView = () => {
                         Chat
                       </button>
                     </Link>
-                    <button
-                      onClick={() => handleDeleteGroup(group.id)}
-                      className="flex items-center gap-1 text-red-700 hover:text-red-900 text-base font-medium px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 transition"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                      Delete
-                    </button>
                   </div>
                 </div>
               </motion.div>
