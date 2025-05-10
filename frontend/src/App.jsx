@@ -8,6 +8,8 @@ import TaskCorner from './Components/SkillSharing/TaskCorner.jsx';
 import Posts from './Components/SkillSharing/Posts';
 import Layout from "./Components/Navigation/Layout";
 import PostsView from "./Components/SkillSharing/PostsView";
+import Notifications from './Components/Interactivity&Engagement/Notifications';
+import Leaderboard from './Components/Interactivity&Engagement/Leaderoard';
 
 
 function App() {
@@ -30,7 +32,8 @@ function App() {
 
       {/*Interactivity routes*/}
       <Route path="/test-database-connection" element={<DatabaseCheck />} />
-
+      <Route path="/notifications" element={<Layout> <Notifications /> </Layout>} />
+      <Route path="/leaderboard" element={<Layout> <Leaderboard /> </Layout>} />
 
 
 

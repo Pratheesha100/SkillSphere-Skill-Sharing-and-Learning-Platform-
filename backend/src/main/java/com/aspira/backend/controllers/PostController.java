@@ -107,4 +107,10 @@ public class PostController {
         List<PostDTO> rankedPosts = postService.getRankedPosts();
         return ResponseEntity.ok(rankedPosts);
     }
+
+    @GetMapping("/top-ranked")
+    public ResponseEntity<List<PostDTO>> getTopRankedPosts(@RequestParam(defaultValue = "10") int limit) {
+        List<PostDTO> topPosts = postService.getTopRankedPosts(limit);
+        return ResponseEntity.ok(topPosts);
+    }
 }

@@ -13,6 +13,8 @@ import com.aspira.backend.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.hibernate.search.mapper.orm.Search;
@@ -248,5 +250,12 @@ public class PostService {
         return posts.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<PostDTO> getTopRankedPosts(int limit) {
+        List<Post> topPosts = postRepository.findAll(PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "rankScore"))).getContent();
+        return topPosts.stream()
+                       .map(this::convertToDTO)
+                       .collect(Collectors.toList());
     }
 }
