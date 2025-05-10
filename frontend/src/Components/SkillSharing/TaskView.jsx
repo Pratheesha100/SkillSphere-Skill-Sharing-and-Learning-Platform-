@@ -67,6 +67,34 @@ function TaskView() {
     }
   };
 
+  const handleShareAsPost = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("User is not authenticated.");
+      return;
+    }
+
+    try {
+      const postData = {
+        title: `Task: ${task.title}`,
+        content: `Task Description: ${task.description}\n\nTopics: ${task.topics.join(', ')}\n\nResources:\n${task.resources.join('\n')}\n\nStart Date: ${new Date(task.startDate).toLocaleString()}\nEnd Date: ${new Date(task.endDate).toLocaleString()}`,
+        category: 'Education'
+      };
+
+      await axios.post('http://localhost:8080/api/posts', postData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      alert("Task shared as post successfully!");
+      navigate("/posts");
+    } catch (error) {
+      console.error("Error sharing task as post:", error);
+      alert("Failed to share task as post. Please try again.");
+    }
+  };
+
   if (!task) {
     return <div>Loading task details...</div>;
   }
@@ -101,19 +129,28 @@ function TaskView() {
         <p>End: {new Date(task.endDate).toLocaleString()}</p>
       </div>
 
-      <button
-        onClick={handleCopyLink}
-        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-      >
-        Share Task
-      </button>
+      <div className="flex gap-4">
+        <button
+          onClick={handleCopyLink}
+          className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+        >
+          Share Task
+        </button>
 
-      <button
-        onClick={handleShareAsPicture}
-        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 mt-4"
-      >
-        Share as Picture
-      </button>
+        <button
+          onClick={handleShareAsPicture}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        >
+          Share as Picture
+        </button>
+
+        <button
+          onClick={handleShareAsPost}
+          className="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600"
+        >
+          Share as Post
+        </button>
+      </div>
     </div>
   );
 }
