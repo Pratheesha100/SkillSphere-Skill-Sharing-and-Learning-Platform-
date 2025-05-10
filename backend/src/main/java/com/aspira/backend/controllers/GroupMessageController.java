@@ -2,6 +2,7 @@ package com.aspira.backend.controllers;
 
 import com.aspira.backend.dto.GroupMessageDTO;
 import com.aspira.backend.service.GroupMessageService;
+import com.aspira.backend.service.GroupService;
 import com.aspira.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ public class GroupMessageController {
 
     private final GroupMessageService messageService;
     private final UserService userService;
+    private final GroupService groupService;
 
     @PostMapping("/{groupId}/messages")
     public ResponseEntity<GroupMessageDTO> sendMessage(

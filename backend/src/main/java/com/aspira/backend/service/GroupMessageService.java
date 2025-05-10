@@ -29,10 +29,10 @@ public class GroupMessageService {
         try {
             CHGroup group = groupRepository.findById(groupId).orElseThrow(() -> new ResourceNotFoundException("Group not found"));
 
-        GroupMessage message = new GroupMessage();
-        message.setGroup(group);
+            GroupMessage message = new GroupMessage();
+            message.setGroup(group);
             message.setSender(userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found")));
-        message.setContent(content);
+            message.setContent(content);
             message.setSentAt(LocalDateTime.now());
 
             // Determine sender type
@@ -64,14 +64,15 @@ public class GroupMessageService {
     }
 
     private GroupMessageDTO convertToDTO(GroupMessage message) {
-        GroupMessageDTO dto = new GroupMessageDTO();
-        dto.setId(message.getId());
-        dto.setGroupId(message.getGroup().getId());
-        dto.setSenderId(message.getSender().getUserId());
-        dto.setSenderName(message.getSender().getUsername());
-        dto.setContent(message.getContent());
-        dto.setSentAt(message.getSentAt());
-        return dto;
+        try {
+            GroupMessageDTO dto = new GroupMessageDTO();
+            dto.setId(message.getId());
+            dto.setGroupId(message.getGroup().getId());
+            dto.setSenderId(message.getSender().getUserId());
+            dto.setSenderName(message.getSender().getUsername());
+            dto.setContent(message.getContent());
+            dto.setSentAt(message.getSentAt());
+            return dto;
         } catch (Exception e) {
             throw new RuntimeException("Error converting message to DTO", e);
         }

@@ -32,6 +32,10 @@ public class CHGroupMember {
         joinedAt = LocalDateTime.now();
     }
 
+    public Long getUserId() {
+        return user.getUserId();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -44,4 +48,4 @@ public class CHGroupMember {
     public int hashCode() {
         return getClass().hashCode();
     }
-} 
+}
