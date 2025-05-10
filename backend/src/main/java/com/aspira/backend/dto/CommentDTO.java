@@ -24,4 +24,7 @@ public class CommentDTO extends RepresentationModel<CommentDTO> {
     private String createdAt; // Timestamp for when the comment was created
 
     private String updatedAt; // Timestamp for when the comment was last updated
+
+    private String commenterUsername;
+    private String commenterAvatarUrl;
 }

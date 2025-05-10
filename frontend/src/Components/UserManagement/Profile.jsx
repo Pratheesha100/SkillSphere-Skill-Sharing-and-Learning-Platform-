@@ -121,6 +121,27 @@ const Profile = () => {
       });
       setUserData(response.data); // Update main user data
       setEditableUserData(response.data); // also update editable data to reflect saved changes
+
+      // ---- ADD/ADAPT THIS SECTION TO UPDATE LOCALSTORAGE for other fields ----
+      const existingUserLocalStorage = localStorage.getItem('user');
+      if (existingUserLocalStorage) {
+        try {
+          const userObj = JSON.parse(existingUserLocalStorage);
+          userObj.name = response.data.name; // Update name
+          userObj.profileImage = response.data.profileImage; // Also update image if it's part of this response
+          userObj.city = response.data.city;
+          userObj.country = response.data.country;
+          // ... update other relevant fields ...
+          localStorage.setItem('user', JSON.stringify(userObj));
+        } catch (e) {
+            console.error("Failed to update user in localStorage after profile save:", e);
+             localStorage.setItem('user', JSON.stringify(response.data)); // Fallback to overwrite
+        }
+      } else {
+         localStorage.setItem('user', JSON.stringify(response.data)); // Fallback if no 'user'
+      }
+      // --------------------------------------------------------------------
+
       handleCloseEditModal();
       Swal.fire('Success!', 'Profile updated successfully.', 'success');
     } catch (err) {
@@ -152,8 +173,42 @@ const Profile = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setUserData(response.data); // Update user data with new image URL
+      setUserData(response.data); // Update state in Profile.jsx
       setEditableUserData(response.data);
+
+      // ---- ADD THIS SECTION TO UPDATE LOCALSTORAGE ----
+      const existingUserLocalStorage = localStorage.getItem('user');
+      if (existingUserLocalStorage) {
+        try {
+          const userObj = JSON.parse(existingUserLocalStorage);
+          userObj.profileImage = response.data.profileImage; 
+          localStorage.setItem('user', JSON.stringify(userObj));
+        } catch (e) {
+          console.error("Failed to update user in localStorage after profile image change:", e);
+          // Fallback: Store the whole new user data from response if parsing old one fails
+          // or if you want to ensure all fields are fresh
+          localStorage.setItem('user', JSON.stringify({
+            name: response.data.name,
+            userId: response.data.userId,
+            email: response.data.email,
+            country: response.data.country,
+            city: response.data.city,
+            profileImage: response.data.profileImage
+          }));
+        }
+      } else {
+        // If for some reason 'user' wasn't in localStorage, store the new data.
+        localStorage.setItem('user', JSON.stringify({
+            name: response.data.name,
+            userId: response.data.userId,
+            email: response.data.email,
+            country: response.data.country,
+            city: response.data.city,
+            profileImage: response.data.profileImage
+          }));
+      }
+      // -------------------------------------------------
+
       Swal.fire('Uploaded!', 'Profile image updated successfully.', 'success');
     } catch (err) {
       console.error("Error uploading profile image:", err);

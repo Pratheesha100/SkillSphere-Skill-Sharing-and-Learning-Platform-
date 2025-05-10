@@ -117,8 +117,15 @@ public class CommentService {
         dto.setContent(comment.getContent());
         dto.setPostId(comment.getPost().getPostId());
         dto.setUserId(comment.getUser().getUserId());
+        
+        // Ensure these lines are present and correct
+        dto.setCommenterUsername(comment.getUser().getUsername()); // Assumes User model has getUsername()
+        dto.setCommenterAvatarUrl(comment.getUser().getProfileImage()); // Assumes User model has getProfileImage()
+        
         dto.setCreatedAt(comment.getCreatedAt().format(formatter));
         dto.setUpdatedAt(comment.getUpdatedAt() != null ? comment.getUpdatedAt().format(formatter) : null);
+        // Add HATEOAS links if you are still using them directly on DTO from here
+        // It seems your controller is adding them now, which is fine.
         return dto;
     }
 }

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import {Snackbar, Alert, Modal, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button} from '@mui/material';
-import {Edit as EditIcon, Delete as DeleteIcon, Videocam, Image, Article, MoreVert, WarningAmber as WarningAmberIcon, DeleteForever as DeleteForeverIcon, Cancel as CancelIcon } from '@mui/icons-material';
+import { Snackbar, Alert, Modal, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button as MuiButton } from '@mui/material';
+import { Edit as EditIcon, Delete as DeleteIcon, Videocam, Image, Article, MoreVert, WarningAmber as WarningAmberIcon, DeleteForever as DeleteForeverIcon, Cancel as CancelIcon, VideoCameraFront, PhotoLibrary, Create } from '@mui/icons-material';
 import PostCreate from './PostCreate';
 import PostUpdate from './PostUpdate';
 import avatar from '../../assets/avatar.png';
 import { ThumbsUp, MessageCircle, Bookmark, Hand, Heart, Lightbulb, Laugh, HandHeart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CircularProgress } from '@mui/material';
+import CommentDrawer from '../Interactivity&Engagement/CommentDrawer';
 
 const categoriesFromProps = [
   'Technology',
@@ -22,24 +23,24 @@ const categoriesFromProps = [
 const categories = ['All', ...categoriesFromProps];
 
 const reactionEmojis = [
-  { icon: <ThumbsUp className="text-blue-600 w-7 h-7" />, label: 'Like' },
-  { icon: <Hand className="text-green-600 w-7 h-7" />, label: 'Celebrate' },
-  { icon: <HandHeart className="text-purple-600 w-7 h-7" />, label: 'Support' },
-  { icon: <Heart className="text-red-600 w-7 h-7" />, label: 'Love' },
-  { icon: <Lightbulb className="text-yellow-500 w-7 h-7" />, label: 'Insightful' },
-  { icon: <Laugh className="text-cyan-600 w-7 h-7" />, label: 'Funny' },
+  { icon: <ThumbsUp className="text-blue-500 w-6 h-6" />, label: 'Like' },
+  { icon: <Heart className="text-red-500 w-6 h-6" />, label: 'Love' },
+  { icon: <Hand className="text-green-500 w-6 h-6" />, label: 'Celebrate' },
+  { icon: <HandHeart className="text-purple-500 w-6 h-6" />, label: 'Support' },
+  { icon: <Lightbulb className="text-yellow-400 w-6 h-6" />, label: 'Insightful' },
+  { icon: <Laugh className="text-pink-500 w-6 h-6" />, label: 'Funny' },
 ];
 
 // Define category colors map
 const categoryColors = {
-  Technology: 'bg-sky-100 text-sky-700',
-  Science: 'bg-green-100 text-green-700',
+  Technology: 'bg-blue-100 text-blue-700',
+  Science: 'bg-emerald-100 text-emerald-700',
   Art: 'bg-purple-100 text-purple-700',
   Music: 'bg-pink-100 text-pink-700',
   Sports: 'bg-orange-100 text-orange-700',
   Education: 'bg-amber-100 text-amber-700',
   Other: 'bg-slate-100 text-slate-700',
-  All: 'bg-gray-100 text-gray-800',
+  All: 'bg-gray-200 text-gray-800',
   default: 'bg-gray-100 text-gray-700' // Fallback
 };
 
@@ -57,9 +58,10 @@ const Posts = () => {
     category: '',
   });
   const [user, setUser] = useState({
-    name: 'Your Name',
-    location: 'Your Location',
+    name: 'User Name',
+    location: 'Location',
     avatar: avatar,
+    userId: null,
   });
   const [openModal, setOpenModal] = useState(false);
   const [likePopupIdx, setLikePopupIdx] = useState(null);
@@ -70,6 +72,7 @@ const Posts = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [postIdToDelete, setPostIdToDelete] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [commentDrawerPostId, setCommentDrawerPostId] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -80,20 +83,51 @@ const Posts = () => {
       }, 2000);
       return;
     }
-    // Try to get user name from localStorage (if stored at login)
-    let userName = 'Your Name';
+
+    let userName = 'User Name';
+    let userLocation = 'Location';
+    let currentUserId = null;
+    let userAvatar = avatar;
+
     try {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const userObj = JSON.parse(userData);
-        if (userObj.name) userName = userObj.name;
+      const userDataString = localStorage.getItem('user');
+      if (userDataString) {
+        const userObj = JSON.parse(userDataString);
+        if (userObj.name) {
+          userName = userObj.name;
+        }
+        if (userObj.userId) {
+          currentUserId = userObj.userId;
+        }
+        const city = userObj.city;
+        const country = userObj.country;
+        if (city && country) {
+          userLocation = `${city}, ${country}`;
+        } else if (city) {
+          userLocation = city;
+        } else if (country) {
+          userLocation = country;
+        }
+        if (userObj.profileImage) {
+            const imageName = userObj.profileImage.startsWith('/') ? userObj.profileImage.substring(1) : userObj.profileImage;
+            userAvatar = `http://localhost:8080/api/media/files/${imageName}`; 
+        } else if (userObj.avatarUrl) {
+            userAvatar = userObj.avatarUrl;
+        }
       }
-    } catch (e) {}
-    setUser((prev) => ({ ...prev, name: userName }));
-    const userData = localStorage.getItem('user');
-    console.log('userData from localStorage:', userData);
+    } catch (e) {
+      console.error("Error parsing user data from localStorage:", e);
+    }
+
+    setUser((prevUser) => ({ 
+      ...prevUser, 
+      name: userName,
+      location: userLocation,
+      userId: currentUserId,
+      avatar: userAvatar,
+    }));
+    
     fetchPosts(token, activeCategory);
-    // Optionally fetch user info here
   }, [navigate, activeCategory]);
 
   const fetchPosts = async (token, categoryToFetch) => {
@@ -246,374 +280,268 @@ const Posts = () => {
     fetchPosts(localStorage.getItem('token'), categoryName);
   };
 
+  // Enhanced background - slightly less busy
+  const backgroundStyle = {
+    background: 'radial-gradient(circle at top left, #e0f2fe 10%, #f3e8ff 60%, #e6f7f0 100%)'
+  };
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, #f0f8fa 0%, #e8f0f8 20%, #f5eef1 40%, #edf5ef 60%, #f2f7f0 80%, #f0f8fa 100%)' }}>
-      <div className="container mx-auto pt-8 flex gap-0 flex-1">
-        {/* Left Sidebar */}
-        <div className="w-full md:w-1/6 flex flex-col gap-4 ml-24">
-          {/* User Profile Card */}
-          <div className="bg-white rounded-xl shadow p-6 flex flex-col items-center border-r-4 border-b-4 border-l-slate-50 border-t-slate-50 border-gray-400 w-full">
-            <img src={user.avatar} alt="avatar" className="w-20 h-20 rounded-full mb-3" />
-            <div className="text-lg font-bold">{user.name}</div>
-            <div className="text-gray-500 text-sm mb-2">{user.location}</div>
-            <button className="mt-2 px-4 py-1 bg-blue-600 text-white rounded-full text-sm">+ Experience</button>
+    <div className="min-h-screen flex flex-col" style={backgroundStyle}>
+      <div className="container mx-auto pt-6 md:pt-8 px-2 sm:px-4 flex flex-col md:flex-row gap-4 md:gap-6 flex-1">
+        {/* Left Sidebar - Enhanced */}
+        <aside className="w-full md:w-1/4 lg:w-1/5 space-y-6">
+          {/* User Profile Card - Enhanced */}
+          <div className="bg-white rounded-lg shadow-md p-5 text-center transition-shadow hover:shadow-lg">
+            <img src={user.avatar} alt="User avatar" className="w-20 h-20 rounded-full mx-auto mb-3 border-2 border-blue-500 p-0.5" />
+            <h3 className="text-lg font-semibold text-gray-800">{user.name}</h3>
+            <p className="text-sm text-gray-500 mb-3">{user.location}</p>
+            <MuiButton 
+              variant="contained" 
+              size="small" 
+              sx={{ borderRadius: '20px', textTransform: 'none', px: 3, bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' }}}
+              onClick={() => navigate('/profile')}
+            >
+              View Profile
+            </MuiButton>
           </div>
-          {/* Categories Section */}
-          <div className="bg-white rounded-xl shadow-md p-4 pl-4 mt-2 w-full">
-            <div className="font-semibold text-gray-700 mb-2 ml-2">Categories</div>
-            <ul className="flex flex-col gap-1 ml-2">
+
+          {/* Categories Section - Enhanced */}
+          <div className="bg-white rounded-lg shadow-md p-5 transition-shadow hover:shadow-lg">
+            <h4 className="font-semibold text-gray-700 mb-3 text-md">Categories</h4>
+            <ul className="space-y-1">
               {categories.map((cat) => (
-                <li 
-                  key={cat} 
-                  className={`px-3 py-1 rounded-md cursor-pointer transition-colors duration-150 ease-in-out 
-                    ${activeCategory === cat 
-                      ? 'bg-blue-500 text-white font-semibold shadow-sm' 
-                      : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'}`}
-                  onClick={() => handleCategoryClick(cat)}
-                >
-                  {cat}
+                <li key={cat}>
+                  <button
+                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-400
+                      ${activeCategory === cat
+                        ? 'bg-blue-500 text-white font-medium shadow-sm'
+                        : 'text-gray-600 hover:bg-blue-50 hover:text-blue-600'}`}
+                    onClick={() => handleCategoryClick(cat)}
+                  >
+                    {cat}
+                  </button>
                 </li>
               ))}
             </ul>
           </div>
-        </div>
-        {/* Main Content */}
-        <div className="flex-1 pl-4">
-          {/* Stack post creation and feed vertically */}
-          <div className="w-full flex flex-col">
-            {/* Post Creation Card  */}
-            <div className="w-full max-w-3xl">
-              <div className="bg-white rounded-xl shadow p-4 mb-2">
-                <div className="flex items-center gap-1 mb-2">
-                  <img src={user.avatar} alt="avatar" className="w-12 h-12 rounded-full" />
-                  <div
-                    className="flex-1 bg-gray-100 rounded-full px-4 py-3 text-gray-500 cursor-pointer hover:bg-gray-200 transition"
-                    onClick={() => setOpenModal(true)}
-                  > Start a post
-                  </div>
-                </div>
-                <div className="flex justify-around mt-2">
-                  <button className="flex items-center gap-1 text-[#ff6186] font-medium text-sm">
-                    <Videocam style={{ color: '#ff6186' }} /> Video
-                  </button>
-                  <button className="flex items-center gap-1 text-blue-600 font-medium text-sm">
-                    <Image style={{ color: '#367dee' }} /> Photo
-                  </button>
-                  <button className="flex items-center gap-1 text-[#4c956c] font-medium text-sm">
-                    <Article style={{ color: '#4c956c' }} /> Write article
-                  </button>
-                </div>
-                <Modal 
-                  open={openModal} 
-                  onClose={() => setOpenModal(false)}
-                  slotProps={{
-                    backdrop: {
-                      sx: {
-                        backgroundColor: 'rgba(20, 20, 30, 0.75)',
-                        backdropFilter: 'blur(6px)',
-                      }
-                    }
-                  }}
-                >
-                  <div className="flex items-center justify-center min-h-screen">
-                    <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg mx-auto">
-                      <PostCreate onClose={handlePostCreated} />
-                    </div>
-                  </div>
-                </Modal>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 space-y-6">
+          {/* Post Creation Trigger - Enhanced */}
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-center gap-3">
+              <img src={user.avatar} alt="avatar" className="w-11 h-11 rounded-full" />
+              <div
+                className="flex-1 bg-gray-100 rounded-full px-4 py-3 text-gray-500 cursor-pointer hover:bg-gray-200 transition text-sm"
+                onClick={() => setOpenModal(true)}
+              >
+                What's on your mind, {user.name.split(' ')[0]}?
               </div>
             </div>
-            {/* Feed Container */}
-            <div className="w-full max-w-3xl bg-transparent rounded-xl shadow-sm p-4 md:p-2 mt-2 mb-3">
-              {loading && (
-                <div className="text-center py-10">
-                  <CircularProgress />
-                  <p className="text-gray-500 mt-2">Loading posts...</p>
-                </div>
-              )}
-              {!loading && posts.length === 0 && (
-                <div className="text-center py-10 bg-white rounded-xl shadow p-6">
-                  <p className="text-xl text-gray-500 font-medium">
-                    {activeCategory === 'All' 
-                      ? 'No posts available yet. Be the first to create one!' 
-                      : `No posts found in "${activeCategory}".`}
-                  </p>
-                </div>
-              )}
-              {!loading && posts.length > 0 && (
-                <div className="flex flex-col gap-1 mt-0">
-                  {posts.map((post, idx) => {
-                    const hasMedia = post.mediaList && post.mediaList.length > 0;
-                    const isSingleMedia = hasMedia && post.mediaList.length === 1;
-                    const isMultiMedia = hasMedia && post.mediaList.length > 1;
-                    return (
-                      <div
-                        key={post.postId}
-                        className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 transition hover:shadow-md group flex flex-col gap-2 mb-4 relative"
-                      >
-                        {/* Top-right controls row */}
-                        <div className="flex justify-end items-center gap-2 absolute top-4 right-4 z-10">
-                          <button
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-1 rounded-full shadow-sm transition"
-                          >
-                            Follow
-                          </button>
-                          <button
-                            className="text-gray-500 hover:bg-gray-100 rounded-full p-1"
-                            onClick={(e) => handleMenuOpen(e, post.postId)}
-                          >
+            <div className="flex justify-around mt-4 pt-3 border-t border-gray-200">
+              <MuiButton startIcon={<VideoCameraFront />} onClick={() => setOpenModal(true)} sx={{color: 'action.active', textTransform: 'none', fontSize: '0.875rem'}}>Video</MuiButton>
+              <MuiButton startIcon={<PhotoLibrary />} onClick={() => setOpenModal(true)} sx={{color: 'action.active', textTransform: 'none', fontSize: '0.875rem'}}>Photo</MuiButton>
+              <MuiButton startIcon={<Create />} onClick={() => setOpenModal(true)} sx={{color: 'action.active', textTransform: 'none', fontSize: '0.875rem'}}>Article</MuiButton>
+            </div>
+          </div>
+          <Modal open={openModal} onClose={() => setOpenModal(false)} aria-labelledby="create-post-modal">
+             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-auto outline-none">
+                <PostCreate onClose={handlePostCreated} />
+              </div>
+          </Modal>
+
+          {/* Posts Feed */}
+          {loading && (
+            <div className="text-center py-12">
+              <CircularProgress />
+              <p className="text-gray-600 mt-2">Loading posts...</p>
+            </div>
+          )}
+          {!loading && posts.length === 0 && (
+            <div className="text-center py-12 bg-white rounded-lg shadow-md p-6">
+              <MessageCircle size={48} className="mx-auto text-gray-400 mb-3" />
+              <p className="text-lg text-gray-500">
+                {activeCategory === 'All' ? 'No posts to show yet.' : `No posts in "${activeCategory}".`}
+              </p>
+              <p className="text-sm text-gray-400 mt-1">Why not create one or try a different category?</p>
+            </div>
+          )}
+          {!loading && posts.length > 0 && (
+            <div className="space-y-6 mb-8 max-w-3xl mx-auto">
+              {posts.map((post, idx) => {
+                const hasMedia = post.mediaList && post.mediaList.length > 0;
+                return (
+                  <article key={post.postId} className="bg-white rounded-lg shadow-md border border-gray-200/80 overflow-hidden transition-shadow hover:shadow-xl">
+                    <div className="p-4 sm:p-5">
+                      <header className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <img src={user.avatar} alt="Author avatar" className="w-10 h-10 rounded-full" />
+                          <div>
+                            <h2 className="font-semibold text-gray-800 text-md">{post.title}</h2>
+                            <div className="text-xs text-gray-500 flex items-center gap-2">
+                              <span>By {user.name}</span>
+                              <span>•</span>
+                              <span>{new Date(post.createdAt || Date.now()).toLocaleDateString()}</span>
+                              <span 
+                                className={`ml-2 inline-block px-2 py-0.5 text-xs font-medium rounded-full ${categoryColors[post.category] || categoryColors.default}`}
+                              >
+                                {post.category}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="relative">
+                          <MuiButton size="small" aria-label="options" onClick={(e) => handleMenuOpen(e, post.postId)} sx={{minWidth: 'auto', padding: '4px', color: 'text.secondary'}}>
                             <MoreVert fontSize="small" />
-                          </button>
-                          <Menu
+                          </MuiButton>
+                          {/* Keep existing Menu logic, slightly adjusted for MuiButton */}
+                           <Menu
                             anchorEl={anchorEl}
                             open={openMenuPostId === post.postId}
                             onClose={handleMenuClose}
-                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                            container={document.body}
-                            PaperProps={{
-                              elevation: 0,
-                              sx: {
-                                overflow: 'visible',
-                                filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))',
-                                mt: 1.5,
-                                borderRadius: '8px',
-                                '& .MuiAvatar-root': {
-                                  width: 32,
-                                  height: 32,
-                                  ml: -0.5,
-                                  mr: 1,
-                                },
-                                '&:before': {
-                                  content: '""',
-                                  display: 'block',
-                                  position: 'absolute',
-                                  top: 0,
-                                  right: 14,
-                                  width: 10,
-                                  height: 10,
-                                  bgcolor: 'background.paper',
-                                  transform: 'translateY(-50%) rotate(45deg)',
-                                  zIndex: 0,
-                                },
-                              },
-                            }}
+                            MenuListProps={{'aria-labelledby': 'post-options-button'}}
+                            slotProps={{ paper: { elevation: 0, sx: { overflow: 'visible', filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))', mt: 1.5, borderRadius: '8px', '&:before': { content: '""', display: 'block', position: 'absolute', top: 0, right: 14, width: 10, height: 10, bgcolor: 'background.paper', transform: 'translateY(-50%) rotate(45deg)', zIndex: 0}}}}}
                           >
-                            <MenuItem onClick={() => {
-                              setPostIdToDelete(post.postId);
-                              setDeleteDialogOpen(true);
-                              handleMenuClose();
-                            }} sx={{ paddingY: '8px', paddingX: '16px', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderRadius: '6px'} }}>
-                              <DeleteIcon fontSize="small" className="mr-2" /> Delete
+                            <MenuItem onClick={() => { setPostIdToDelete(post.postId); setDeleteDialogOpen(true); handleMenuClose(); }} sx={{fontSize: '0.875rem'}}>
+                              <DeleteIcon fontSize="small" sx={{mr:1}} /> Delete
                             </MenuItem>
-                            <MenuItem onClick={() => handleEditClick(post)} sx={{ paddingY: '8px', paddingX: '16px', '&:hover': { backgroundColor: 'rgba(0, 0, 0, 0.04)', borderRadius: '6px'} }}>
-                              <EditIcon fontSize="small" className="mr-2" /> Edit
+                            <MenuItem onClick={() => handleEditClick(post)} sx={{fontSize: '0.875rem'}}>
+                              <EditIcon fontSize="small" sx={{mr:1}} /> Edit
                             </MenuItem>
                           </Menu>
                         </div>
-                        {/* Add top padding to content to avoid overlap */}
-                        <div className="pt-5">
-                          {/* Text Content Block */}
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-3 mb-2">
-                                <img src={user.avatar} alt="avatar" className="w-10 h-10 rounded-full border border-gray-300" />
-                                <div>
-                                  <div className="font-semibold text-gray-900 text-lg">{post.title}</div>
-                                  <span 
-                                    className={`inline-block px-2 py-0.5 text-xs font-semibold rounded ${categoryColors[post.category] || categoryColors.default} mr-2 mt-1`}
-                                  >
-                                    {post.category}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="text-gray-700 mb-2 text-base leading-relaxed break-words">
-                                {post.content}
-                                {/* Hashtags */}
-                                <div className="mt-1">
-                                  {post.hashtags && post.hashtags.map((tag, idx) => (
-                                    <span
-                                      key={idx}
-                                      className="text-blue-600 font-medium cursor-pointer hover:underline mr-2"
-                                    >
-                                      #{tag}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                            {/* Right side of this flex is now empty as media moved below */}
-                          </div>
+                      </header>
 
-                          {/* Media Section */}
-                          {hasMedia && (
-                            <div className="flex flex-col gap-2 mt-3">
-                              {/* First media: big */}
-                              <div>
-                                {post.mediaList[0].mediaType === 'VIDEO' ? (
-                                  <video
-                                    src={post.mediaList[0].mediaUrl}
-                                    controls
-                                    className="w-full max-h-96 rounded-xl object-cover"
-                                  />
-                                ) : (
-                                  <img
-                                    src={post.mediaList[0].mediaUrl}
-                                    alt={`${post.title} - main media`}
-                                    className="w-full max-h-96 rounded-xl object-cover"
-                                  />
-                                )}
-                              </div>
-                              {/* Other media: larger thumbnails */}
-                              {isMultiMedia && (
-                                <div className="flex flex-row flex-wrap gap-2">
-                                  {post.mediaList.slice(1).map((mediaItem, idx) => (
-                                    <div key={idx} className="w-40 h-32">
-                                      {mediaItem.mediaType === 'VIDEO' ? (
-                                        <video
-                                          src={mediaItem.mediaUrl}
-                                          controls
-                                          className="w-full h-full rounded-lg object-cover"
-                                        />
-                                      ) : (
-                                        <img
-                                          src={mediaItem.mediaUrl}
-                                          alt={`${post.title} - media ${idx + 2}`}
-                                          className="w-full h-full rounded-lg object-cover"
-                                        />
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
+                      <div className="text-gray-700 text-sm mb-3 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: post.content.replace(/\n/g, '<br />') }} />
+                       {/* Hashtags - more subtle */}
+                        {post.hashtags && post.hashtags.length > 0 && (
+                            <div className="mb-3 flex flex-wrap gap-1">
+                                {post.hashtags.map((tag, tagIdx) => (
+                                <span key={tagIdx} className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium cursor-pointer hover:bg-blue-100">
+                                    #{tag}
+                                </span>
+                                ))}
                             </div>
+                        )}
+
+
+                      {/* Media Section - Simplified to show only the first media item prominently for now */}
+                      {hasMedia && post.mediaList[0] && (
+                        <div className="my-3 rounded-lg overflow-hidden border border-gray-200">
+                          {post.mediaList[0].mediaType === 'VIDEO' ? (
+                            <video src={post.mediaList[0].mediaUrl} controls className="w-full max-h-[400px] object-contain bg-gray-100" />
+                          ) : (
+                            <img src={post.mediaList[0].mediaUrl} alt={post.title} className="w-full max-h-[400px] object-contain bg-gray-100" />
                           )}
-
-                          {/* Actions Bar - MOVED to be a direct child of pt-5, after text and media */}
-                          <div className="relative mt-3"> {/* Added mt-3 for spacing */}
-                            <div className="flex justify-around items-center border-t pt-3 text-gray-500 text-sm font-medium">
-                              <button
-                                className="flex items-center gap-1 hover:text-blue-600 transition relative"
-                                onMouseEnter={() => setLikePopupIdx(idx)} // idx here is from posts.map((post, idx))
-                                onMouseLeave={() => setLikePopupIdx(null)}
-                              >
-                                <ThumbsUp className="w-5 h-5" /> Like
-                              </button>
-                              <button className="flex items-center gap-1 hover:text-blue-600 transition">
-                                <MessageCircle className="w-5 h-5" /> Comment
-                              </button>
-                              <button className="flex items-center gap-1 hover:text-blue-600 transition">
-                                <Bookmark className="w-5 h-5" /> Saved
-                              </button>
-                            </div>
-                            {/* Emoji popup for Like */}
-                            <AnimatePresence>
-                              {likePopupIdx === idx && ( // Check against idx
-                                <motion.div
-                                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                                  transition={{ duration: 0.2, ease: "easeInOut" }}
-                                  className="absolute left-[-7%] -translate-x-1/2 bottom-10 z-20 flex gap-2 sm:gap-3 bg-white rounded-3xl shadow-xl px-3 sm:px-4 py-2 border border-gray-200"
-                                  onMouseEnter={() => setLikePopupIdx(idx)} // Keep open
-                                  onMouseLeave={() => setLikePopupIdx(null)} // Hide
-                                >
-                                  {reactionEmojis.map((r, i) => (
-                                    <motion.div
-                                      key={i}
-                                      className="flex flex-col items-center cursor-pointer group"
-                                      whileHover={{ scale: 1.15, y: -4 }}
-                                      transition={{ type: "spring", stiffness: 300, damping: 10 }}
-                                    >
-                                      {React.cloneElement(r.icon, { className: `${r.icon.props.className} group-hover:brightness-110` })}
-                                      <span className="text-xs mt-1 text-gray-600 group-hover:text-blue-600 font-medium">{r.label}</span>
-                                    </motion.div>
-                                  ))}
-                                  {/* Small arrow pointing down */}
-                                  <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-3 h-3 bg-white border-r border-b border-gray-200 transform rotate-45 z-[-1]"></div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
                         </div>
+                      )}
+                      {/* TODO: Add a gallery view for multiple media items if needed */}
+
+
+                      {/* Actions Bar - Enhanced */}
+                      <div className="border-t border-gray-200 pt-2.5 mt-3 relative">
+                        <div className="flex justify-around items-center text-gray-600">
+                          <button
+                            className="flex items-center gap-1.5 py-1.5 px-3 rounded-md hover:bg-gray-100 text-sm transition-colors group"
+                            onMouseEnter={() => setLikePopupIdx(idx)}
+                            onMouseLeave={() => setLikePopupIdx(null)}
+                          >
+                            <ThumbsUp className="w-4 h-4 text-gray-500 group-hover:text-blue-500" /> <span className="group-hover:text-blue-500">Like</span>
+                          </button>
+                          <button 
+                            className="flex items-center gap-1.5 py-1.5 px-3 rounded-md hover:bg-gray-100 text-sm transition-colors group"
+                            onClick={() => setCommentDrawerPostId(post.postId)}
+                          >
+                            <MessageCircle className="w-4 h-4 text-gray-500 group-hover:text-green-500" /> <span className="group-hover:text-green-500">Comment</span>
+                          </button>
+                          <button className="flex items-center gap-1.5 py-1.5 px-3 rounded-md hover:bg-gray-100 text-sm transition-colors group">
+                            <Bookmark className="w-4 h-4 text-gray-500 group-hover:text-purple-500" /> <span className="group-hover:text-purple-500">Save</span>
+                          </button>
+                        </div>
+                         {/* Keep existing Emoji Popup logic */}
+                        <AnimatePresence>
+                          {likePopupIdx === idx && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                              transition={{ duration: 0.15, ease: "easeOut" }}
+                              className="absolute left-0 -bottom-2 transform translate-y-full z-20 flex gap-1 bg-white rounded-full shadow-xl p-1.5 border border-gray-200"
+                              onMouseEnter={() => setLikePopupIdx(idx)}
+                              onMouseLeave={() => setLikePopupIdx(null)}
+                            >
+                              {reactionEmojis.map((r, i) => (
+                                <motion.button
+                                  key={i}
+                                  title={r.label}
+                                  className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                                  whileHover={{ scale: 1.2, y: -3 }}
+                                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                >
+                                  {React.cloneElement(r.icon, { className: `${r.icon.props.className} w-5 h-5` })}
+                                </motion.button>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
-          </div>
-        </div>
+          )}
+        </main>
       </div>
-      {/* Snackbar for errors and success */}
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity="error" variant="filled" sx={{ width: '100%', boxShadow: 3, fontSize: '1.05rem' }}>
-          {error}
-        </Alert>
+
+      {/* Snackbars */}
+      <Snackbar open={!!error} autoHideDuration={6000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={handleCloseSnackbar} severity="error" variant="filled" sx={{ width: '100%', boxShadow: 3 }}>{error}</Alert>
       </Snackbar>
-      <Snackbar open={!!success} autoHideDuration={6000} onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert onClose={handleCloseSnackbar} severity="success" variant="filled" sx={{ width: '100%', boxShadow: 3, fontSize: '1.05rem' }}>
-          {success}
-        </Alert>
+      <Snackbar open={!!success} autoHideDuration={4000} onClose={handleCloseSnackbar} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert onClose={handleCloseSnackbar} severity="success" variant="filled" sx={{ width: '100%', boxShadow: 3 }}>{success}</Alert>
       </Snackbar>
+
       {/* Edit Post Modal */}
       {postToEdit && (
         <PostUpdate
           open={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false);
-            setPostToEdit(null);
-          }}
+          onClose={() => { setIsEditModalOpen(false); setPostToEdit(null); }}
           postData={postToEdit}
           onPostUpdated={handlePostUpdated}
         />
       )}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: '12px',
-            padding: '10px',
-          }
-        }}
-      >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} PaperProps={{ sx: { borderRadius: '12px', p: 1 } }}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontWeight: 'medium' }}>
           <WarningAmberIcon sx={{ color: 'warning.main', fontSize: '2rem' }} />
-          Delete Post Confirmation
+          Confirm Deletion
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ marginTop: 1 }}>
-            Are you sure you want to permanently delete this post? This action cannot be undone.
-          </DialogContentText>
+          <DialogContentText>Are you sure you want to permanently delete this post? This action cannot be undone.</DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ paddingRight: '20px', paddingBottom: '16px' }}>
-          <Button 
-            onClick={() => setDeleteDialogOpen(false)} 
-            color="inherit" 
-            startIcon={<CancelIcon />}
-            sx={{ textTransform: 'none', fontWeight: 'medium' }}
+        <DialogActions sx={{ pb: 2, px: 2.5 }}>
+          <MuiButton onClick={() => setDeleteDialogOpen(false)} color="inherit" sx={{textTransform: 'none'}}>Cancel</MuiButton>
+          <MuiButton
+            onClick={async () => { await handleDelete(postIdToDelete); setDeleteDialogOpen(false); }}
+            color="error" variant="contained" disableElevation
+            startIcon={<DeleteForeverIcon />} sx={{textTransform: 'none', fontWeight: 'medium'}}
           >
-            Cancel
-          </Button>
-          <Button
-            onClick={async () => {
-              await handleDelete(postIdToDelete);
-              setDeleteDialogOpen(false);
-            }}
-            color="error"
-            variant="contained"
-            startIcon={<DeleteForeverIcon />}
-            sx={{ textTransform: 'none', fontWeight: 'bold', boxShadow: 'none', '&:hover': { boxShadow: 'none' } }}
-          >
-            Delete Permanently
-          </Button>
+            Delete
+          </MuiButton>
         </DialogActions>
       </Dialog>
+
+      {/* Comment Drawer */}
+      {commentDrawerPostId && (
+        <CommentDrawer
+          postId={commentDrawerPostId}
+          currentUser={{ userId: user.userId, name: user.name, avatar: user.avatar }}
+          onClose={() => setCommentDrawerPostId(null)}
+        />
+      )}
     </div>
   );
 };

@@ -38,6 +38,9 @@ public class AuthenticationService {
                 .userId(user.getUserId())
                 .email(user.getEmail())
                 .name(user.getName())
+                .city(user.getCity())
+                .country(user.getCountry())
+                .profileImage(user.getProfileImage())
                 .build();
     }
 } 

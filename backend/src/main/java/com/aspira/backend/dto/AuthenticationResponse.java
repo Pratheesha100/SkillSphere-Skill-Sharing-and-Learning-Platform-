@@ -14,4 +14,7 @@ public class AuthenticationResponse {
     private Long userId;
     private String email;
     private String name;
+    private String city;
+    private String country;
+    private String profileImage;
 } 

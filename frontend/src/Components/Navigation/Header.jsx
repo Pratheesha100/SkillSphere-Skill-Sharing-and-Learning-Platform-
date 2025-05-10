@@ -87,13 +87,13 @@ function Header() {
         </motion.button>
 
         <button
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/")}
           className="px-[10px] py-[5px] rounded-md border text-sm border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
         >
           Log In
         </button>
         <button
-          onClick={() => navigate("/signup")}
+          onClick={() => navigate("/")}
           className="px-[10px] py-[5px] rounded-md bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition"
         >
           Sign Up
