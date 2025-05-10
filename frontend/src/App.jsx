@@ -9,7 +9,8 @@ import Posts from './Components/SkillSharing/Posts';
 import Layout from "./Components/Navigation/Layout";
 import PostsView from "./Components/SkillSharing/PostsView";
 import Notifications from './Components/Interactivity&Engagement/Notifications';
-import Leaderboard from './Components/Interactivity&Engagement/Leaderoard';
+import Leaderboard from './Components/Interactivity&Engagement/Leaderboard';
+import AboutUs from './Components/UserManagement/AboutUs';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
       <Route path="/test-database-connection" element={<DatabaseCheck />} />
       <Route path="/notifications" element={<Layout> <Notifications /> </Layout>} />
       <Route path="/leaderboard" element={<Layout> <Leaderboard /> </Layout>} />
+      <Route path="/about" element={<Layout> <AboutUs /> </Layout>} />
 
 
 

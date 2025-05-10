@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Snackbar, Alert, Modal, Menu, MenuItem, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button as MuiButton } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Videocam, Image, Article, MoreVert, WarningAmber as WarningAmberIcon, DeleteForever as DeleteForeverIcon, Cancel as CancelIcon, VideoCameraFront, PhotoLibrary, Create } from '@mui/icons-material';
+import { Edit as EditIcon, Delete as DeleteIcon, Videocam, Image, Article, MoreVert, WarningAmber as WarningAmberIcon, DeleteForever as DeleteForeverIcon, Cancel as CancelIcon, VideoCameraFront, PhotoLibrary, Create, AccountCircle } from '@mui/icons-material';
 import PostCreate from './PostCreate';
 import PostUpdate from './PostUpdate';
 import avatar from '../../assets/avatar.png';
@@ -449,7 +449,7 @@ const Posts = () => {
 
   return (
     <div className="min-h-screen flex flex-col" style={backgroundStyle}>
-      <div className="container mx-auto pt-6 md:pt-8 px-2 sm:px-4 flex flex-col md:flex-row gap-4 md:gap-6 flex-1">
+      <div className="container mx-auto pt-6 md:pt-8 px-2 sm:px-4 flex flex-col md:flex-row gap-4 md:gap-6 flex-1 mb-12">
         {/* Left Sidebar - Enhanced */}
         <aside className="w-full md:w-1/4 lg:w-1/5 space-y-6">
           {/* User Profile Card - Enhanced */}
@@ -489,7 +489,7 @@ const Posts = () => {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 space-y-6">
+        <main className="flex-1 space-y-6 md:w-1/2 lg:w-3/5">
           {/* Post Creation Trigger - Enhanced */}
           <div className="bg-white rounded-lg shadow-md p-4">
             <div className="flex items-center gap-3">
@@ -706,6 +706,55 @@ const Posts = () => {
             </div>
           )}
         </main>
+
+        {/* Right Sidebar - New */}
+        <aside className="w-full md:w-1/4 lg:w-1/5 space-y-6 hidden md:block">
+          {/* Trending Hashtags Card */}
+          <div className="bg-white rounded-lg shadow-md p-5 transition-shadow hover:shadow-lg">
+            <h4 className="font-semibold text-gray-700 mb-3 text-md">Trending Hashtags</h4>
+            <ul className="space-y-1">
+              {['#innovation', '#reactjs', '#webdev', '#tailwindcss', '#careeradvice'].map((tag) => (
+                <li key={tag}>
+                  <button
+                    className="w-full text-left px-3 py-1.5 rounded-md text-sm text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    {tag}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Quick Actions & Tips Card */}
+          <div className="bg-white rounded-lg shadow-md p-5 transition-shadow hover:shadow-lg">
+            <h4 className="font-semibold text-gray-700 mb-3 text-md">Quick Actions & Tips</h4>
+            <MuiButton 
+                variant="outlined" 
+                size="small" 
+                fullWidth 
+                sx={{ mb: 1.5, textTransform: 'none', justifyContent: 'flex-start' }}
+                startIcon={<Create />}
+                onClick={() => setOpenModal(true)}
+            >
+                Create New Post
+            </MuiButton>
+            <MuiButton 
+                variant="outlined" 
+                size="small" 
+                fullWidth 
+                sx={{ mb: 1.5, textTransform: 'none', justifyContent: 'flex-start' }}
+                startIcon={<AccountCircle className="w-5 h-5" />}
+                onClick={() => navigate('/profile')}
+            >
+                View Your Profile
+            </MuiButton>
+            <div className="mt-3 border-t pt-3">
+                <p className="text-xs text-gray-600">
+                    <strong>Tip:</strong> Engage with posts by commenting and reacting to gain visibility!
+                </p>
+            </div>
+          </div>
+        </aside>
       </div>
 
       {/* Snackbars */}
