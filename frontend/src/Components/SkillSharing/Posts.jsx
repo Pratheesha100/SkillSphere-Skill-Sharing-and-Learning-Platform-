@@ -399,6 +399,7 @@ const Posts = () => {
                           <MuiButton 
                             size="small" 
                             aria-label="options" 
+                            id={`post-options-button-${post.postId}`}
                             onClick={(e) => handleMenuOpen(e, post.postId)} 
                             sx={{minWidth: 'auto', padding: '4px', color: 'text.secondary', marginTop: '-4px'}}
                           >
@@ -408,8 +409,30 @@ const Posts = () => {
                             anchorEl={anchorEl}
                             open={openMenuPostId === post.postId}
                             onClose={handleMenuClose}
-                            MenuListProps={{'aria-labelledby': 'post-options-button'}}
-                            slotProps={{ paper: { elevation: 0, sx: { overflow: 'visible', filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))', mt: 0.5, borderRadius: '8px', '&:before': { content: '""', display: 'block', position: 'absolute', top: 0, right: 14, width: 10, height: 10, bgcolor: 'background.paper', transform: 'translateY(-50%) rotate(45deg)', zIndex: 0}}}}}
+                            aria-labelledby={`post-options-button-${post.postId}`}
+                            slotProps={{ 
+                              paper: { 
+                                elevation: 0, 
+                                sx: { 
+                                  overflow: 'visible', 
+                                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))', 
+                                  mt: 0.5, 
+                                  borderRadius: '8px', 
+                                  '&:before': { 
+                                    content: '""', 
+                                    display: 'block', 
+                                    position: 'absolute', 
+                                    top: 0, 
+                                    right: 14, 
+                                    width: 10, 
+                                    height: 10, 
+                                    bgcolor: 'background.paper', 
+                                    transform: 'translateY(-50%) rotate(45deg)', 
+                                    zIndex: 0
+                                  }
+                                }
+                              }
+                            }}
                           >
                             <MenuItem onClick={() => { setPostIdToDelete(post.postId); setDeleteDialogOpen(true); handleMenuClose(); }} sx={{fontSize: '0.875rem'}}>
                               <DeleteIcon fontSize="small" sx={{mr:1}} /> Delete
