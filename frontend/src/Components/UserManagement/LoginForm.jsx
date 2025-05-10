@@ -106,8 +106,9 @@ const LoginForm = ({ onSuccess }) => {
       });
 
       if (response.status === 200) {
-        // Store the token in localStorage
+        // Store the token and userId in localStorage
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('userId', response.data.userId);
         localStorage.setItem('user', JSON.stringify({ name: response.data.name }));
         onSuccess();
       }

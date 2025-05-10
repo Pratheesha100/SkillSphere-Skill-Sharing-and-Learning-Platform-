@@ -22,107 +22,123 @@ function TaskCorner() {
     endDate: ''
   });
   const [editingTask, setEditingTask] = useState(null);
-  const [userId, setUserId] = useState(localStorage.getItem('userId'));
 
   useEffect(() => {
-    // Check if userId is missing or invalid
-    const numericUserId = parseInt(userId, 10);
-    if (!userId || isNaN(numericUserId)) {
-      alert('No valid user ID found. Please log in.');
-      // Optionally, you could redirect to a login page here
-      return;
-    }
-    fetchTasks();
-  }, [userId]);
+    const fetchTasks = async () => {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
 
-  const fetchTasks = async () => {
-    try {
-      const numericUserId = parseInt(userId, 10);
-      if (isNaN(numericUserId)) {
-        throw new Error('Invalid user ID');
+      if (!token || !userId) {
+        console.error("User is not authenticated or userId is missing.");
+        return;
       }
-      const response = await axios.get(`http://localhost:8080/api/tasks/user/${numericUserId}`);
-      setTasks(response.data);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-      alert(error.response?.data?.message || 'Failed to fetch tasks. Please try again.');
-    }
-  };
+
+      try {
+        const response = await axios.get(`/api/tasks/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // Ensure the response data is an array
+        if (Array.isArray(response.data)) {
+          setTasks(response.data);
+        } else {
+          console.error("Unexpected response format:", response.data);
+          setTasks([]); // Fallback to an empty array
+        }
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        setTasks([]); // Fallback to an empty array in case of error
+      }
+    };
+
+    fetchTasks();
+  }, []);
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
-    try {
-      // Parse userId as number
-      const numericUserId = parseInt(userId, 10);
-      if (isNaN(numericUserId)) {
-        throw new Error('Invalid user ID');
-      }
+    const token = localStorage.getItem("token");
 
-      // Ensure correct date format and convert arrays if needed
-      const taskData = {
+    if (!token) {
+        console.error("User is not authenticated.");
+        return;
+    }
+
+    // Ensure topics and resources are arrays
+    const formattedTask = {
         ...newTask,
-        topics: typeof newTask.topics === 'string' ? newTask.topics.split(',').map(s => s.trim()).filter(Boolean) : newTask.topics,
-        resources: typeof newTask.resources === 'string' ? newTask.resources.split(',').map(s => s.trim()).filter(Boolean) : newTask.resources,
-        startDate: ensureSeconds(newTask.startDate),
-        endDate: ensureSeconds(newTask.endDate)
-      };
+        topics: Array.isArray(newTask.topics) ? newTask.topics : newTask.topics.split(",").map((t) => t.trim()),
+        resources: Array.isArray(newTask.resources) ? newTask.resources : newTask.resources.split(",").map((r) => r.trim()),
+    };
 
-      const response = await axios.post(`http://localhost:8080/api/tasks?userId=${numericUserId}`, taskData);
-      if (response.status === 200 || response.status === 201) {
+    try {
+        const response = await axios.post(
+            "/api/tasks",
+            formattedTask,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        setTasks([...tasks, response.data]);
         setNewTask({
-          title: '',
-          description: '',
-          topics: [],
-          resources: [],
-          startDate: '',
-          endDate: ''
+            title: "",
+            description: "",
+            topics: [],
+            resources: [],
+            startDate: "",
+            endDate: "",
         });
-        fetchTasks();
-        alert('Task created successfully!');
-      }
     } catch (error) {
-      console.error('Error creating task:', error);
-      alert(error.response?.data?.message || 'Failed to create task. Please try again.');
+        console.error("Error creating task:", error);
     }
-  };
+};
 
-  const handleUpdateTask = async (e) => {
-    e.preventDefault();
-    if (!editingTask || !editingTask.id) {
-      alert('No task selected for update');
-      return;
-    }
-    try {
-      // Ensure correct date format and convert arrays if needed
-      const updatedTask = {
-        ...editingTask,
-        topics: typeof editingTask.topics === 'string' ? editingTask.topics.split(',').map(s => s.trim()).filter(Boolean) : editingTask.topics,
-        resources: typeof editingTask.resources === 'string' ? editingTask.resources.split(',').map(s => s.trim()).filter(Boolean) : editingTask.resources,
-        startDate: ensureSeconds(editingTask.startDate),
-        endDate: ensureSeconds(editingTask.endDate)
-      };
-      const response = await axios.put(`http://localhost:8080/api/tasks/${editingTask.id}`, updatedTask);
-      if (response.status === 200) {
-        setEditingTask(null);
-        fetchTasks();
-        alert('Task updated successfully!');
-      }
-    } catch (error) {
-      console.error('Error updating task:', error);
-      alert(error.response?.data?.message || 'Failed to update task. Please try again.');
-    }
-  };
+const handleUpdateTask = async (taskId, updatedTask) => {
+    const token = localStorage.getItem("token");
 
-  const handleDeleteTask = async (taskId) => {
-    try {
-      await axios.delete(`http://localhost:8080/api/tasks/${taskId}`);
-      fetchTasks();
-      alert('Task deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      alert(error.response?.data?.message || 'Failed to delete task. Please try again.');
+    if (!token) {
+        console.error("User is not authenticated.");
+        return;
     }
-  };
+
+    try {
+        const response = await axios.put(
+            `/api/tasks/${taskId}`,
+            updatedTask,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        setTasks(tasks.map((task) => (task.id === taskId ? response.data : task)));
+    } catch (error) {
+        console.error("Error updating task:", error);
+    }
+};
+
+const handleDeleteTask = async (taskId) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        console.error("User is not authenticated.");
+        return;
+    }
+
+    try {
+        await axios.delete(`/api/tasks/${taskId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        setTasks(tasks.filter((task) => task.id !== taskId));
+    } catch (error) {
+        console.error("Error deleting task:", error);
+    }
+};
 
   // Handles both create and edit input changes
   const handleInputChange = (e) => {

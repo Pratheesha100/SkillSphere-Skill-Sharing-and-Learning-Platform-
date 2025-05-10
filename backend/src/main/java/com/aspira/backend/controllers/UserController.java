@@ -2,12 +2,18 @@ package com.aspira.backend.controllers;
 
 import com.aspira.backend.dto.UserDTO;
 import com.aspira.backend.exception.ResourceNotFoundException;
+import com.aspira.backend.security.JwtTokenProvider;
 import com.aspira.backend.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -20,6 +26,12 @@ public class UserController {
 
     private final UserService userService;
 
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     public UserController(UserService userService) {
         this.userService = userService;
     }
@@ -31,6 +43,27 @@ public class UserController {
             return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> loginRequest) {
+        try {
+            String email = loginRequest.get("email");
+            String password = loginRequest.get("password");
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+
+            UserDetails userDetails = userService.loadUserByUsername(email);
+            String token = jwtTokenProvider.createToken(userDetails);
+            Long userId = userService.getUserByEmail(email).getUserId();
+
+            Map<String, Object> response = Map.of(
+                "token", token,
+                "userId", userId
+            );
+            return ResponseEntity.ok(response);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid email or password"));
         }
     }
 
