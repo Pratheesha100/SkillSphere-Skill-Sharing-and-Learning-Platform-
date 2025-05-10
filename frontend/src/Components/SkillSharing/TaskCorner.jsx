@@ -173,152 +173,199 @@ const handleDeleteTask = async (taskId) => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Task Corner</h1>
-      
-      {/* Create/Edit Task Form */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">
-          {editingTask ? 'Edit Task' : 'Create New Task'}
-        </h2>
-        <form onSubmit={editingTask ? handleUpdateTask : handleCreateTask}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-              <input
-                type="text"
-                name="title"
-                value={editingTask ? editingTask.title : newTask.title}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                name="description"
-                value={editingTask ? editingTask.description : newTask.description}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Topics (comma-separated)</label>
-              <input
-                type="text"
-                value={editingTask ? arrayToString(editingTask.topics) : arrayToString(newTask.topics)}
-                onChange={(e) => handleArrayInputChange(e, 'topics')}
-                className="w-full px-3 py-2 border rounded-md"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Resources (comma-separated)</label>
-              <input
-                type="text"
-                value={editingTask ? arrayToString(editingTask.resources) : arrayToString(newTask.resources)}
-                onChange={(e) => handleArrayInputChange(e, 'resources')}
-                className="w-full px-3 py-2 border rounded-md"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-              <input
-                type="datetime-local"
-                name="startDate"
-                value={editingTask ? toInputDateTime(editingTask.startDate) : toInputDateTime(newTask.startDate)}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-              <input
-                type="datetime-local"
-                name="endDate"
-                value={editingTask ? toInputDateTime(editingTask.endDate) : toInputDateTime(newTask.endDate)}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border rounded-md"
-                required
-              />
-            </div>
-          </div>
-          <div className="flex justify-end">
-            {editingTask && (
-              <button
-                type="button"
-                onClick={() => setEditingTask(null)}
-                className="mr-2 px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-            )}
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              {editingTask ? 'Update Task' : 'Create Task'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Tasks List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tasks.map((task) => (
-          <div key={task.id} className="bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-xl font-semibold mb-2">{task.title}</h3>
-            <p className="text-gray-600 mb-4">{task.description}</p>
-            
-            <div className="mb-4">
-              <h4 className="font-medium mb-1">Topics:</h4>
-              <div className="flex flex-wrap gap-2">
-                {task.topics && task.topics.map((topic, index) => (
-                  <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm">
-                    {topic}
-                  </span>
-                ))}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text">
+              Task Corner
+            </span>
+          </h1>
+          <p className="text-gray-600">Manage and organize your learning tasks</p>
+        </div>
+        
+        {/* Create/Edit Task Form */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-12 border border-gray-100">
+          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+            <span className="material-icons text-blue-500">add_task</span>
+            {editingTask ? 'Edit Task' : 'Create New Task'}
+          </h2>
+          <form onSubmit={editingTask ? handleUpdateTask : handleCreateTask}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="material-icons text-blue-500 text-sm">title</span>
+                  Title
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={editingTask ? editingTask.title : newTask.title}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="material-icons text-blue-500 text-sm">description</span>
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={editingTask ? editingTask.description : newTask.description}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="material-icons text-blue-500 text-sm">local_offer</span>
+                  Topics (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={editingTask ? arrayToString(editingTask.topics) : arrayToString(newTask.topics)}
+                  onChange={(e) => handleArrayInputChange(e, 'topics')}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="material-icons text-blue-500 text-sm">link</span>
+                  Resources (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  value={editingTask ? arrayToString(editingTask.resources) : arrayToString(newTask.resources)}
+                  onChange={(e) => handleArrayInputChange(e, 'resources')}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="material-icons text-blue-500 text-sm">event</span>
+                  Start Date
+                </label>
+                <input
+                  type="datetime-local"
+                  name="startDate"
+                  value={editingTask ? toInputDateTime(editingTask.startDate) : toInputDateTime(newTask.startDate)}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <span className="material-icons text-blue-500 text-sm">event_busy</span>
+                  End Date
+                </label>
+                <input
+                  type="datetime-local"
+                  name="endDate"
+                  value={editingTask ? toInputDateTime(editingTask.endDate) : toInputDateTime(newTask.endDate)}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  required
+                />
               </div>
             </div>
-
-            <div className="mb-4">
-              <h4 className="font-medium mb-1">Resources:</h4>
-              <ul className="list-disc list-inside">
-                {task.resources && task.resources.map((resource, index) => (
-                  <li key={index} className="text-sm text-gray-600">{resource}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="text-sm text-gray-500 mb-4">
-              <p>Start: {new Date(task.startDate).toLocaleString()}</p>
-              <p>End: {new Date(task.endDate).toLocaleString()}</p>
-            </div>
-
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-4">
+              {editingTask && (
+                <button
+                  type="button"
+                  onClick={() => setEditingTask(null)}
+                  className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all duration-200 font-medium flex items-center gap-2"
+                >
+                  <span className="material-icons">close</span>
+                  Cancel
+                </button>
+              )}
               <button
-                onClick={() => setEditingTask(task)}
-                className="px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 text-sm"
+                type="submit"
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium flex items-center gap-2 shadow-md hover:shadow-lg"
               >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDeleteTask(task.id)}
-                className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => navigate(`/tasks/${task.id}`)}
-                className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
-              >
-                View
+                <span className="material-icons">{editingTask ? 'save' : 'add'}</span>
+                {editingTask ? 'Update Task' : 'Create Task'}
               </button>
             </div>
-          </div>
-        ))}
+          </form>
+        </div>
+
+        {/* Tasks List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {tasks.map((task) => (
+            <div key={task.id} className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+              <h3 className="text-xl font-bold mb-3 text-gray-900">{task.title}</h3>
+              <p className="text-gray-600 mb-4 line-clamp-2">{task.description}</p>
+              
+              <div className="mb-4">
+                <h4 className="font-medium mb-2 text-gray-800 flex items-center gap-2">
+                  <span className="material-icons text-blue-400 text-sm">local_offer</span>
+                  Topics
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {task.topics && task.topics.map((topic, index) => (
+                    <span key={index} className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium shadow-sm border border-blue-200">
+                      {topic}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <h4 className="font-medium mb-2 text-gray-800 flex items-center gap-2">
+                  <span className="material-icons text-green-400 text-sm">link</span>
+                  Resources
+                </h4>
+                <ul className="space-y-1">
+                  {task.resources && task.resources.map((resource, index) => (
+                    <li key={index} className="text-sm text-gray-600 hover:text-blue-600 transition-colors cursor-pointer underline underline-offset-2">
+                      {resource}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
+                <div className="flex items-center gap-1">
+                  <span className="material-icons text-yellow-500 text-sm">event</span>
+                  <span>{new Date(task.startDate).toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="material-icons text-red-400 text-sm">event_busy</span>
+                  <span>{new Date(task.endDate).toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setEditingTask(task)}
+                  className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-white rounded-lg hover:from-yellow-500 hover:to-yellow-600 transition-all duration-200 font-medium flex items-center gap-1 shadow-sm hover:shadow-md"
+                >
+                  <span className="material-icons text-sm">edit</span>
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeleteTask(task.id)}
+                  className="px-4 py-2 bg-gradient-to-r from-red-400 to-red-500 text-white rounded-lg hover:from-red-500 hover:to-red-600 transition-all duration-200 font-medium flex items-center gap-1 shadow-sm hover:shadow-md"
+                >
+                  <span className="material-icons text-sm">delete</span>
+                  Delete
+                </button>
+                <button
+                  onClick={() => navigate(`/tasks/${task.id}`)}
+                  className="px-4 py-2 bg-gradient-to-r from-blue-400 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-600 transition-all duration-200 font-medium flex items-center gap-1 shadow-sm hover:shadow-md"
+                >
+                  <span className="material-icons text-sm">visibility</span>
+                  View
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
