@@ -8,7 +8,7 @@ import TaskCorner from './Components/SkillSharing/TaskCorner.jsx';
 import Posts from './Components/SkillSharing/Posts';
 import Layout from "./Components/Navigation/Layout";
 import PostsView from "./Components/SkillSharing/PostsView";
-
+import TaskView from './Components/SkillSharing/TaskView';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -26,6 +26,8 @@ function App() {
       <Route path="/TaskCorner" element={<TaskCorner />} />
       <Route path="/postview" element= {<Layout>  <PostsView /> </Layout>} />
       <Route path="/posts" element= {<Layout>  <Posts /> </Layout>} />
+      <Route path="/tasks" element={<TaskCorner />} />
+      <Route path="/tasks/:taskId" element={<TaskView />} />
       
 
       {/*Interactivity routes*/}
@@ -51,4 +53,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 // Helper to ensure seconds in datetime-local string
 function ensureSeconds(dateTimeLocalStr) {
@@ -22,6 +23,7 @@ function TaskCorner() {
     endDate: ''
   });
   const [editingTask, setEditingTask] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -307,6 +309,12 @@ const handleDeleteTask = async (taskId) => {
                 className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm"
               >
                 Delete
+              </button>
+              <button
+                onClick={() => navigate(`/tasks/${task.id}`)}
+                className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm"
+              >
+                View
               </button>
             </div>
           </div>
