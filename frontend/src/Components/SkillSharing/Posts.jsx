@@ -374,34 +374,42 @@ const Posts = () => {
                 return (
                   <article key={post.postId} className="bg-white rounded-lg shadow-md border border-gray-200/80 overflow-hidden transition-shadow hover:shadow-xl">
                     <div className="p-4 sm:p-5">
-                      <header className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <img src={user.avatar} alt="Author avatar" className="w-10 h-10 rounded-full" />
-                          <div>
-                            <h2 className="font-semibold text-gray-800 text-md">{post.title}</h2>
-                            <div className="text-xs text-gray-500 flex items-center gap-2">
-                              <span>By {user.name}</span>
-                              <span>•</span>
+                      <header className="flex justify-between items-start mb-3">
+                        <div className="flex items-start gap-3">
+                          <img 
+                            src={post.authorProfileImage ? `http://localhost:8080/api/media/files/${post.authorProfileImage.startsWith('/') ? post.authorProfileImage.substring(1) : post.authorProfileImage}` : avatar} 
+                            alt={post.authorName || 'Author'} 
+                            className="w-10 h-10 rounded-full flex-shrink-0 mt-0.5"
+                          />
+                          <div className="flex-grow">
+                            <h2 className="font-semibold text-gray-800 text-md leading-tight">{post.title}</h2>
+                            <div className="text-xs text-gray-500 flex items-center flex-wrap gap-x-2 gap-y-1 mt-0.5">
+                              <span>By {post.authorName || 'Unknown Author'}</span>
+                              <span className="text-gray-400">•</span>
                               <span>{new Date(post.createdAt || Date.now()).toLocaleDateString()}</span>
                               <span 
-                                className={`ml-2 inline-block px-2 py-0.5 text-xs font-medium rounded-full ${categoryColors[post.category] || categoryColors.default}`}
+                                className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${categoryColors[post.category] || categoryColors.default}`}
                               >
                                 {post.category}
                               </span>
                             </div>
                           </div>
                         </div>
-                        <div className="relative">
-                          <MuiButton size="small" aria-label="options" onClick={(e) => handleMenuOpen(e, post.postId)} sx={{minWidth: 'auto', padding: '4px', color: 'text.secondary'}}>
+                        <div className="relative flex-shrink-0 ml-2">
+                          <MuiButton 
+                            size="small" 
+                            aria-label="options" 
+                            onClick={(e) => handleMenuOpen(e, post.postId)} 
+                            sx={{minWidth: 'auto', padding: '4px', color: 'text.secondary', marginTop: '-4px'}}
+                          >
                             <MoreVert fontSize="small" />
                           </MuiButton>
-                          {/* Keep existing Menu logic, slightly adjusted for MuiButton */}
-                           <Menu
+                          <Menu
                             anchorEl={anchorEl}
                             open={openMenuPostId === post.postId}
                             onClose={handleMenuClose}
                             MenuListProps={{'aria-labelledby': 'post-options-button'}}
-                            slotProps={{ paper: { elevation: 0, sx: { overflow: 'visible', filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))', mt: 1.5, borderRadius: '8px', '&:before': { content: '""', display: 'block', position: 'absolute', top: 0, right: 14, width: 10, height: 10, bgcolor: 'background.paper', transform: 'translateY(-50%) rotate(45deg)', zIndex: 0}}}}}
+                            slotProps={{ paper: { elevation: 0, sx: { overflow: 'visible', filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.15))', mt: 0.5, borderRadius: '8px', '&:before': { content: '""', display: 'block', position: 'absolute', top: 0, right: 14, width: 10, height: 10, bgcolor: 'background.paper', transform: 'translateY(-50%) rotate(45deg)', zIndex: 0}}}}}
                           >
                             <MenuItem onClick={() => { setPostIdToDelete(post.postId); setDeleteDialogOpen(true); handleMenuClose(); }} sx={{fontSize: '0.875rem'}}>
                               <DeleteIcon fontSize="small" sx={{mr:1}} /> Delete

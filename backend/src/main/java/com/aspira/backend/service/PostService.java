@@ -208,12 +208,27 @@ public class PostService {
         dto.setContent(post.getContent());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUserId(post.getUser().getUserId());
+
+        // Add author details
+        if (post.getUser() != null) {
+            dto.setAuthorName(post.getUser().getName());
+            dto.setAuthorProfileImage(post.getUser().getProfileImage());
+        } else {
+            // Handle case where post might not have a user (though unlikely for your setup)
+            dto.setAuthorName("Unknown Author");
+            dto.setAuthorProfileImage(null); // Or a default placeholder path
+        }
+
         dto.setViews(post.getViews());
         dto.setRankScore(post.getRankScore());
 
-        // Fetch and set media list
         List<MediaDTO> mediaList = mediaService.getMediaByPostId(post.getPostId());
         dto.setMediaList(mediaList);
+        
+        // Extract and set hashtags
+        if (post.getHashtags() != null) {
+            dto.setHashtags(post.getHashtags().stream().map(Hashtag::getName).collect(Collectors.toList()));
+        }
 
         return dto;
     }
