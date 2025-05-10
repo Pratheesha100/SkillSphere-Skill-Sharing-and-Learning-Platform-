@@ -194,23 +194,23 @@ const GroupView = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#ecedee] p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
         <div className="text-xl text-gray-600">Loading groups...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#ecedee] p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6 md:p-10">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">My Groups</h1>
+        <div className="flex justify-between items-center mb-10">
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">My Groups</h1>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition"
+            className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-xl shadow hover:bg-indigo-700 transition font-semibold text-lg"
           >
             <Plus className="w-5 h-5" />
             Create Group
@@ -218,35 +218,38 @@ const GroupView = () => {
         </div>
 
         {/* Admin Groups */}
-        <div className="mb-12">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Crown className="w-5 h-5 text-yellow-500" />
+        <div className="mb-14">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <Crown className="w-6 h-6 text-yellow-500" />
             Groups I Admin
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {Array.isArray(adminGroups) && adminGroups.map((group) => (
               <motion.div
                 key={group.id}
                 whileHover={{ scale: 1.02 }}
-                className="bg-white rounded-xl shadow-md p-6"
+                className="bg-white/80 backdrop-blur rounded-2xl shadow-lg p-7 border border-gray-200 hover:shadow-xl transition"
               >
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{group.name}</h3>
-                <p className="text-gray-600 mb-4">{group.description}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Users className="w-4 h-4" />
+                <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Crown className="w-5 h-5 text-yellow-500" />
+                  {group.name}
+                </h3>
+                <p className="text-gray-600 mb-4 min-h-[40px]">{group.description}</p>
+                <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center gap-2 text-base text-gray-500">
+                    <Users className="w-5 h-5" />
                     <span>{group.memberCount} members</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleManageMembers(group)}
-                      className="flex items-center gap-1 text-blue-700 hover:text-blue-800 text-sm font-medium"
+                      className="flex items-center gap-1 text-indigo-700 hover:text-indigo-900 text-base font-medium px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 transition"
                     >
-                      <UserPlus className="w-4 h-4" />
-                      Manage Members
+                      <UserPlus className="w-5 h-5" />
+                      Manage
                     </button>
                     <Link to={`/groups/${group.id}/chat`}>
-                      <button className="flex items-center gap-1 text-green-700 hover:text-green-800 text-sm font-medium">
+                      <button className="flex items-center gap-1 text-green-700 hover:text-green-900 text-base font-medium px-3 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 transition">
                         Chat
                       </button>
                     </Link>
@@ -264,26 +267,29 @@ const GroupView = () => {
 
         {/* Member Groups */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Users className="w-5 h-5 text-blue-500" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-500" />
             Groups I'm In
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {Array.isArray(memberGroups) && memberGroups.map((group) => (
               <motion.div
                 key={group.id}
                 whileHover={{ scale: 1.02 }}
-                className="bg-white rounded-xl shadow-md p-6"
+                className="bg-white/80 backdrop-blur rounded-2xl shadow-lg p-7 border border-gray-200 hover:shadow-xl transition"
               >
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{group.name}</h3>
-                <p className="text-gray-600 mb-4">{group.description}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Users className="w-4 h-4" />
+                <h3 className="text-xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-blue-500" />
+                  {group.name}
+                </h3>
+                <p className="text-gray-600 mb-4 min-h-[40px]">{group.description}</p>
+                <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center gap-2 text-base text-gray-500">
+                    <Users className="w-5 h-5" />
                     <span>{group.memberCount} members</span>
                   </div>
                   <Link to={`/groups/${group.id}/chat`}>
-                    <button className="flex items-center gap-1 text-green-700 hover:text-green-800 text-sm font-medium">
+                    <button className="flex items-center gap-1 text-green-700 hover:text-green-900 text-base font-medium px-3 py-1.5 rounded-lg bg-green-50 hover:bg-green-100 transition">
                       Chat
                     </button>
                   </Link>
@@ -301,11 +307,11 @@ const GroupView = () => {
 
       {/* Member Management Modal */}
       {showMemberModal && selectedGroup && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-xl p-6 w-full max-w-2xl"
+            className="bg-white/90 backdrop-blur rounded-2xl p-8 w-full max-w-2xl shadow-2xl border border-gray-200"
           >
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -319,7 +325,8 @@ const GroupView = () => {
                   setNewMemberEmail('');
                   setMemberError(null);
                 }}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                title="Close"
               >
                 ✕
               </button>
@@ -334,13 +341,13 @@ const GroupView = () => {
             {/* Add Member Form */}
             <form onSubmit={handleAddMember} className="mb-6">
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-gray-700 text-base font-semibold mb-2">
                   Add Member
                 </label>
                 <select
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
                   required
                 >
                   <option value="">Select a user</option>
@@ -353,9 +360,7 @@ const GroupView = () => {
               </div>
               <button
                 type="submit"
-                className={`px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition ${
-                  isLoadingMembers ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold text-base ${isLoadingMembers ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={isLoadingMembers}
               >
                 {isLoadingMembers ? (
@@ -370,18 +375,18 @@ const GroupView = () => {
             <div className="max-h-96 overflow-y-auto">
               {isLoadingMembers ? (
                 <div className="flex justify-center items-center py-8">
-                  <div className="w-8 h-8 border-4 border-blue-700 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : (
                 <div className="space-y-2">
                   {groupMembers.map((member) => (
                     <div
                       key={member.userId}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-indigo-50 rounded-lg shadow-sm"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <span className="text-blue-700 font-semibold">
+                        <div className="w-10 h-10 rounded-full bg-indigo-200 flex items-center justify-center">
+                          <span className="text-indigo-700 font-bold text-lg">
                             {member.name?.charAt(0).toUpperCase() || '?'}
                           </span>
                         </div>
@@ -392,7 +397,7 @@ const GroupView = () => {
                       </div>
                       <button
                         onClick={() => handleRemoveMember(member.userId)}
-                        className="text-red-600 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition"
+                        className="text-red-600 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition"
                         title="Remove member"
                         disabled={isLoadingMembers}
                       >
@@ -414,16 +419,16 @@ const GroupView = () => {
 
       {/* Create Group Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-xl p-6 w-full max-w-md"
+            className="bg-white/90 backdrop-blur rounded-2xl p-8 w-full max-w-md shadow-2xl border border-gray-200"
           >
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Create New Group</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Group</h2>
             <form onSubmit={handleCreateGroup}>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-gray-700 text-base font-semibold mb-2">
                   Group Name
                 </label>
                 <input
@@ -435,9 +440,7 @@ const GroupView = () => {
                       setErrors({ ...errors, name: null });
                     }
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.name ? 'border-red-500' : ''
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base ${errors.name ? 'border-red-500' : ''}`}
                   required
                   minLength={3}
                   maxLength={100}
@@ -447,7 +450,7 @@ const GroupView = () => {
                 )}
               </div>
               <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-bold mb-2">
+                <label className="block text-gray-700 text-base font-semibold mb-2">
                   Description
                 </label>
                 <textarea
@@ -458,9 +461,7 @@ const GroupView = () => {
                       setErrors({ ...errors, description: null });
                     }
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.description ? 'border-red-500' : ''
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 text-base ${errors.description ? 'border-red-500' : ''}`}
                   rows="3"
                   maxLength={1000}
                 />
@@ -478,13 +479,13 @@ const GroupView = () => {
                     setShowCreateModal(false);
                     setErrors({});
                   }}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition"
+                  className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold text-base"
                 >
                   Create Group
                 </button>
