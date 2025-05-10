@@ -79,8 +79,9 @@ const LoginForm = ({ onSuccess }) => {
     });
   };
   
-  //Form Submission Handler
+  //Form Submission Handler for login
   const handleSubmit = async (e) => {
+    debugger
     e.preventDefault();
     setError("");
     
@@ -106,6 +107,7 @@ const LoginForm = ({ onSuccess }) => {
       });
 
       if (response.status === 200) {
+        
         // Store the token in localStorage
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify({ name: response.data.name }));
