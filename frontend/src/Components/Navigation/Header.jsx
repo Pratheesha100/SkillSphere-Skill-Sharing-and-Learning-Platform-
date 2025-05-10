@@ -8,15 +8,9 @@ const navLinks = [
   { name: "About Us", path: "/about" },
   { name: "Posts", path: "/posts" },
   { name: "Tasks Corner", path: "/TaskCorner" },
-<<<<<<< HEAD
   { name: "GameHub", path: "" },
   { name: "Groups", path: "/groups" },
   { name: "Leader Board", path: "/leaderboard" },
-=======
-  { name: "GameHub", path: "/gamehub" },
-  { name: "Groups", path: "" },
-  { name: "Leader Board", path: "" },
->>>>>>> f4cd11f7e88c06bb877250219bf200d85541a01e
 ];
 
 function Header() {

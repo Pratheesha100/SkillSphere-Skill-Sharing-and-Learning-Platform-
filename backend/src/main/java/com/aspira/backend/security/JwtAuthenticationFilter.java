@@ -47,10 +47,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             userEmail = jwtConfig.extractUsername(jwt);
             System.out.println("JwtAuthenticationFilter: Extracted userEmail: " + userEmail);
 
-            if (userEmail != null) {
-                System.out.println("JwtAuthenticationFilter: User email extracted.");
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                System.out.println("JwtAuthenticationFilter: User email extracted and no existing authentication in context.");
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
                 System.out.println("JwtAuthenticationFilter: Loaded UserDetails for user: " + userDetails.getUsername());
+                
                 if (jwtConfig.validateToken(jwt, userDetails)) {
                     System.out.println("JwtAuthenticationFilter: JWT token is valid.");
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -65,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     System.out.println("JwtAuthenticationFilter: JWT token validation failed.");
                 }
             } else {
-                System.out.println("JwtAuthenticationFilter: User email is null.");
+                System.out.println("JwtAuthenticationFilter: User email is null or authentication already exists in context.");
             }
         } catch (Exception e) {
             System.err.println("JwtAuthenticationFilter: Error during JWT processing: " + e.getMessage());

@@ -40,31 +40,31 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Authentication endpoints
-                        .requestMatchers("/api/auth/", "/oauth2/", "/login/oauth2/", "/error", "/api/greeting").permitAll()
+                        .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**", "/error", "/api/greeting").permitAll()
                         .requestMatchers("/api/users/check-email").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/email").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{userId:\\d+}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/media/files/").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/media/files/**").permitAll()
 
                         // Interactivity module
-                        .requestMatchers("/api/users/").permitAll()
-                        .requestMatchers("/api/posts/").authenticated()
-                        .requestMatchers("/api/media/").permitAll()
-                        .requestMatchers("/api/reactions/").authenticated()
-                        .requestMatchers("/api/saved-posts/").authenticated()
-                        .requestMatchers("/api/comments/").authenticated()
-                        .requestMatchers("/api/notifications/").authenticated()
+                        .requestMatchers("/api/users/**").permitAll()
+                        .requestMatchers("/api/posts/**").authenticated()
+                        .requestMatchers("/api/media/**").permitAll()
+                        .requestMatchers("/api/reactions/**").authenticated()
+                        .requestMatchers("/api/saved-posts/**").authenticated()
+                        .requestMatchers("/api/comments/**").authenticated()
+                        .requestMatchers("/api/notifications/**").authenticated()
                         .requestMatchers("/test-database-connection").authenticated()
 
                         // Skill share module
-                        .requestMatchers("/api/tasks/").authenticated()
+                        .requestMatchers("/api/tasks/**").authenticated()
 
                         // Group module
-                        .requestMatchers(HttpMethod.GET, "/api/groups/").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/groups/").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/groups/").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/groups/").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/groups/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/groups/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/groups/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/groups/**").authenticated()
 
                         // Game Hub module
                         .requestMatchers("/api/users/all").authenticated()
@@ -104,5 +104,7 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
+    }
 }
+
+

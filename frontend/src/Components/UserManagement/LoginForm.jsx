@@ -79,9 +79,8 @@ const LoginForm = ({ onSuccess }) => {
     });
   };
   
-  //Form Submission Handler for login
+  //Form Submission Handler
   const handleSubmit = async (e) => {
-    debugger
     e.preventDefault();
     setError("");
     
@@ -107,12 +106,7 @@ const LoginForm = ({ onSuccess }) => {
       });
 
       if (response.status === 200) {
-<<<<<<< HEAD
         // Store the token and userId in localStorage
-=======
-        
-        // Store the token in localStorage
->>>>>>> f4cd11f7e88c06bb877250219bf200d85541a01e
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('userId', response.data.userId);
         localStorage.setItem('user', JSON.stringify({ 
