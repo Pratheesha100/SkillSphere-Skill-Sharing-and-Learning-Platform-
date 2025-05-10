@@ -19,11 +19,11 @@ function App() {
       {/*User routes*/}
       <Route path="/" element={<AuthPage />} />
       <Route path="/home" element={ <Layout>  <Home /> </Layout>} />
-      <Route path="/profile" element={<Profile />} />
+      <Route path="/profile" element={ <Layout> <Profile /> </Layout>} />
       
 
       {/*skillsharing routes*/}
-      <Route path="/TaskCorner" element={<TaskCorner />} />
+      <Route path="/TaskCorner" element={<Layout> <TaskCorner /> </Layout>} />
       <Route path="/postview" element= {<Layout>  <PostsView /> </Layout>} />
       <Route path="/posts" element= {<Layout>  <Posts /> </Layout>} />
       

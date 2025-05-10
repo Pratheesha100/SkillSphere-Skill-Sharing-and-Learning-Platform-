@@ -32,6 +32,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
         String provider = userRequest.getClientRegistration().getRegistrationId();
+        String profileImage = null;
+        if (attributes.containsKey("picture")) {
+            profileImage = (String) attributes.get("picture");
+        }
 
         Optional<User> userOptional = userRepository.findByEmail(email);
         User user;
@@ -47,6 +51,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             user.setName(name);
             user.setProvider(provider);
             user.setUsername(email.split("@")[0]);
+            user.setProfileImage(profileImage);
             userRepository.save(user);
         }
 

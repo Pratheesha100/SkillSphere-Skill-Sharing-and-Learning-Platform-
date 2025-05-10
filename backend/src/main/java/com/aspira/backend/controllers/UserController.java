@@ -2,6 +2,7 @@ package com.aspira.backend.controllers;
 
 import com.aspira.backend.dto.UserDTO;
 import com.aspira.backend.exception.ResourceNotFoundException;
+import com.aspira.backend.model.User;
 import com.aspira.backend.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
@@ -74,6 +76,32 @@ public class UserController {
     public ResponseEntity<Map<String, Boolean>> checkEmailExists(@RequestParam String email) {
         boolean exists = userService.existsByEmail(email);
         return ResponseEntity.ok(Collections.singletonMap("exists", exists));
+    }
+
+    @PostMapping("/me/profile-image")
+    public ResponseEntity<UserDTO> uploadProfileImage(@RequestParam("file") MultipartFile file) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        Long userId = userService.getUserByEmail(email).getUserId();
+        try {
+            UserDTO updatedUser = userService.saveProfileImage(userId, file);
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName(); 
+        try {
+            User user = userService.getUserByEmail(email);
+            UserDTO userDTO = userService.convertToDTO(user);
+            return ResponseEntity.ok(userDTO);
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }

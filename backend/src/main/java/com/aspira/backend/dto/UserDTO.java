@@ -31,4 +31,10 @@ public class UserDTO {
     private LocalDate birthday;
 
     private String provider;
+
+    private String profileImage;
+
+    private String country;
+    private String city;
+    private String postalCode;
 }

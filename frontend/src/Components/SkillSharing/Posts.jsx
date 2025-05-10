@@ -494,7 +494,7 @@ const Posts = () => {
                             <div className="flex justify-around items-center border-t pt-3 text-gray-500 text-sm font-medium">
                               <button
                                 className="flex items-center gap-1 hover:text-blue-600 transition relative"
-                                onMouseEnter={() => setLikePopupIdx(idx)} // idx is from posts.map()
+                                onMouseEnter={() => setLikePopupIdx(idx)} // idx here is from posts.map((post, idx))
                                 onMouseLeave={() => setLikePopupIdx(null)}
                               >
                                 <ThumbsUp className="w-5 h-5" /> Like
@@ -508,15 +508,15 @@ const Posts = () => {
                             </div>
                             {/* Emoji popup for Like */}
                             <AnimatePresence>
-                              {likePopupIdx === idx && (
+                              {likePopupIdx === idx && ( // Check against idx
                                 <motion.div
                                   initial={{ opacity: 0, y: 10, scale: 0.9 }}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
                                   exit={{ opacity: 0, y: 10, scale: 0.9 }}
                                   transition={{ duration: 0.2, ease: "easeInOut" }}
                                   className="absolute left-[-7%] -translate-x-1/2 bottom-10 z-20 flex gap-2 sm:gap-3 bg-white rounded-3xl shadow-xl px-3 sm:px-4 py-2 border border-gray-200"
-                                  onMouseEnter={() => setLikePopupIdx(idx)}
-                                  onMouseLeave={() => setLikePopupIdx(null)}
+                                  onMouseEnter={() => setLikePopupIdx(idx)} // Keep open
+                                  onMouseLeave={() => setLikePopupIdx(null)} // Hide
                                 >
                                   {reactionEmojis.map((r, i) => (
                                     <motion.div
