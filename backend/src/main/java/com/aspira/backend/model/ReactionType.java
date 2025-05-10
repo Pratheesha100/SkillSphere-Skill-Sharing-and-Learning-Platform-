@@ -3,9 +3,5 @@ package com.aspira.backend.model;
 public enum ReactionType {
     LIKE,
     LOVE,
-    CONGRATS,
-    HAHA,
-    WOW,
-    SAD,
-    INSIGHTFUL,
+    INSIGHTFUL
 }

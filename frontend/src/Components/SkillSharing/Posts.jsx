@@ -6,7 +6,7 @@ import { Edit as EditIcon, Delete as DeleteIcon, Videocam, Image, Article, MoreV
 import PostCreate from './PostCreate';
 import PostUpdate from './PostUpdate';
 import avatar from '../../assets/avatar.png';
-import { ThumbsUp, MessageCircle, Bookmark, Hand, Heart, Lightbulb, Laugh, HandHeart } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Bookmark, Heart, Lightbulb } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CircularProgress } from '@mui/material';
 import CommentDrawer from '../Interactivity&Engagement/CommentDrawer';
@@ -25,10 +25,7 @@ const categories = ['All', ...categoriesFromProps];
 const reactionEmojis = [
   { icon: <ThumbsUp className="text-blue-500 w-6 h-6" />, label: 'Like' },
   { icon: <Heart className="text-red-500 w-6 h-6" />, label: 'Love' },
-  { icon: <Hand className="text-green-500 w-6 h-6" />, label: 'Celebrate' },
-  { icon: <HandHeart className="text-purple-500 w-6 h-6" />, label: 'Support' },
   { icon: <Lightbulb className="text-yellow-400 w-6 h-6" />, label: 'Insightful' },
-  { icon: <Laugh className="text-pink-500 w-6 h-6" />, label: 'Funny' },
 ];
 
 // Define category colors map
@@ -75,6 +72,7 @@ const Posts = () => {
   const [commentDrawerPostId, setCommentDrawerPostId] = useState(null);
   const [reactions, setReactions] = useState({});
   const [comments, setComments] = useState({});
+  const [userReactions, setUserReactions] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -294,9 +292,15 @@ const Posts = () => {
       const response = await axios.get(`http://localhost:8080/api/reactions/post/${postId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setReactions(prev => ({ ...prev, [postId]: response.data || [] }));
+      const allReactions = response.data || [];
+      setReactions(prev => ({ ...prev, [postId]: allReactions }));
+      // Track current user's reaction
+      const userId = JSON.parse(localStorage.getItem('user'))?.userId;
+      const userReactionObj = allReactions.find(r => r.userId === userId);
+      setUserReactions(prev => ({ ...prev, [postId]: userReactionObj || null }));
     } catch (error) {
       setReactions(prev => ({ ...prev, [postId]: [] }));
+      setUserReactions(prev => ({ ...prev, [postId]: null }));
     }
   };
 
@@ -325,18 +329,121 @@ const Posts = () => {
   };
 
   // Add reaction handler
-  const handleAddReaction = async (postId, reactionType) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post('http://localhost:8080/api/reactions', {
-        reactionType,
-        postId
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
+  const handleAddReaction = async (postId, newReactionType) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Please login to react.');
+      return;
+    }
+
+    const currentUserId = JSON.parse(localStorage.getItem('user'))?.userId;
+    if (!currentUserId) {
+        setError('User information not found. Please login again.');
+        return;
+    }
+
+    // Find the post to check its owner
+    const targetPost = posts.find(p => p.postId === postId);
+    if (targetPost && targetPost.userId === currentUserId) {
+        setError('You cannot react to your own post.');
+        return;
+    }
+
+    // Store original state for potential rollback
+    const originalUserReactionForPost = userReactions[postId] ? { ...userReactions[postId] } : null;
+    const originalReactionsForPost = reactions[postId] ? reactions[postId].map(r => ({...r})) : []; // Deep copy for rollback
+
+    let optimisticUserReaction = null;
+    let optimisticSuccessMessage = '';
+
+    // --- Optimistic UI Update Start ---
+    if (userReactions[postId]) { // User has an existing reaction
+      if (userReactions[postId].reactionType === newReactionType) { // Clicking the same reaction to remove it
+        optimisticUserReaction = null;
+        setUserReactions(prev => ({ ...prev, [postId]: null }));
+        setReactions(prev => {
+            const postReactions = prev[postId] || [];
+            return { ...prev, [postId]: postReactions.filter(r => r.userId !== currentUserId) };
+        });
+        optimisticSuccessMessage = 'Reaction removed.';
+      } else { // Clicking a different reaction to update
+        // Use the existing reactionId if available for the optimistic object
+        const existingReactionId = userReactions[postId].reactionId;
+        optimisticUserReaction = { userId: currentUserId, postId, reactionType: newReactionType, reactionId: existingReactionId || Date.now() }; // Use existing ID or temp
+        setUserReactions(prev => ({ ...prev, [postId]: optimisticUserReaction }));
+        setReactions(prev => {
+            const postReactions = prev[postId] || [];
+            const reactionExistsInArray = postReactions.some(r => r.userId === currentUserId);
+            if (reactionExistsInArray) {
+                return { ...prev, [postId]: postReactions.map(r => r.userId === currentUserId ? optimisticUserReaction : r) };
+            } else {
+                 // If for some reason it wasn't in the main array but was in userReactions, add it
+                return { ...prev, [postId]: [...postReactions, optimisticUserReaction] };
+            }
+        });
+        optimisticSuccessMessage = 'Reaction updated.';
+      }
+    } else { // No existing reaction, adding a new one
+      optimisticUserReaction = { userId: currentUserId, postId, reactionType: newReactionType, reactionId: Date.now() }; // temp ID for optimistic update
+      setUserReactions(prev => ({ ...prev, [postId]: optimisticUserReaction }));
+      setReactions(prev => {
+          const postReactions = prev[postId] || [];
+          return { ...prev, [postId]: [...postReactions, optimisticUserReaction] };
       });
-      fetchReactions(postId); // Refresh the count
+      optimisticSuccessMessage = 'Reaction added.';
+    }
+    setSuccess(optimisticSuccessMessage); // Show success message immediately
+    // --- Optimistic UI Update End ---
+
+    try {
+      if (originalUserReactionForPost) {
+        // User had an existing reaction
+        if (originalUserReactionForPost.reactionType === newReactionType) {
+          // Clicked the same reaction again - remove it
+          await axios.delete(`http://localhost:8080/api/reactions/${originalUserReactionForPost.reactionId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } else {
+          // Clicked a different reaction - update it
+          await axios.put(
+            `http://localhost:8080/api/reactions/${originalUserReactionForPost.reactionId}?newReactionType=${newReactionType}`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+      } else {
+        // No existing reaction - add new one
+        const response = await axios.post(
+          'http://localhost:8080/api/reactions',
+          { postId, reactionType: newReactionType }, // userId will be taken from token on backend
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const actualCreatedReaction = response.data; // Contains the real ID from the server
+
+        // Immediately update state with the actual created reaction data
+        setUserReactions(prev => ({
+          ...prev,
+          [postId]: actualCreatedReaction
+        }));
+        // Replace the optimistic reaction (with temp ID) with the actual one from the server
+        setReactions(prev => {
+          const currentPostReactions = prev[postId] || [];
+          const updatedPostReactions = currentPostReactions.filter(
+            r => r.reactionId !== optimisticUserReaction.reactionId // optimisticUserReaction has the temp Date.now() ID
+          );
+          return { ...prev, [postId]: [...updatedPostReactions, actualCreatedReaction] };
+        });
+      }
+      // Successfully updated backend, now fetch the true state to ensure consistency and get actual reactionId
+      fetchReactions(postId);
     } catch (error) {
-      alert('Failed to add reaction.');
+      console.error("Failed to update reaction:", error.response || error);
+      setError(error.response?.data?.message || error.response?.data?.error || 'Failed to update reaction.');
+      
+      // --- Rollback Optimistic Update On Error ---
+      setUserReactions(prev => ({ ...prev, [postId]: originalUserReactionForPost }));
+      setReactions(prev => ({...prev, [postId]: originalReactionsForPost}));
+      setSuccess(null); // Clear optimistic success message
     }
   };
 
@@ -530,7 +637,7 @@ const Posts = () => {
                         <div className="flex justify-around items-center text-gray-600">
                           <div className="relative flex items-center gap-1.5">
                             <button
-                              className="flex items-center gap-1.5 py-1.5 px-3 rounded-md hover:bg-gray-100 text-sm transition-colors group"
+                              className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md hover:bg-gray-100 text-sm transition-colors group ${userReactions[post.postId]?.reactionType === 'LIKE' ? 'text-blue-600 font-bold' : ''}`}
                               onMouseEnter={() => setLikePopupIdx(idx)}
                               onMouseLeave={() => setLikePopupIdx(null)}
                               onClick={() => handleAddReaction(post.postId, 'LIKE')}
@@ -544,24 +651,24 @@ const Posts = () => {
                             <AnimatePresence>
                               {likePopupIdx === idx && (
                                 <motion.div
-                                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                                  initial={{ opacity: 0, y: -10, scale: 0.9 }}
                                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                                  exit={{ opacity: 0, y: -10, scale: 0.9 }}
                                   transition={{ duration: 0.15, ease: "easeOut" }}
-                                  className="absolute left-0 -bottom-2 transform translate-y-full z-20 flex gap-1 bg-white rounded-full shadow-xl p-1.5 border border-gray-200"
+                                  className="absolute left-[-55%] -translate-x-1/2 bottom-full mb-3 z-20 flex gap-1 bg-white rounded-xl shadow-xl p-1.5 border border-gray-200 after:content-[''] after:absolute after:left-1/2 after:-translate-x-1/2 after:top-full after:w-0 after:h-0 after:border-l-[8px] after:border-l-transparent after:border-r-[8px] after:border-r-transparent after:border-t-[8px] after:border-t-white"
                                   onMouseEnter={() => setLikePopupIdx(idx)}
                                   onMouseLeave={() => setLikePopupIdx(null)}
                                 >
                                   {reactionEmojis.map((r, i) => (
                                     <motion.button
                                       key={i}
-                                      title={r.label}
-                                      className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                                      className={`p-1.5 rounded-full hover:bg-gray-100 transition-colors ${userReactions[post.postId]?.reactionType === r.label.toUpperCase() ? 'ring-2 ring-blue-400' : ''}`}
                                       whileHover={{ scale: 1.2, y: -3 }}
                                       transition={{ type: "spring", stiffness: 400, damping: 10 }}
                                       onClick={() => handleAddReaction(post.postId, r.label.toUpperCase())}
                                     >
                                       {React.cloneElement(r.icon, { className: `${r.icon.props.className} w-5 h-5` })}
+                                      <span className="block text-xs mt-1 text-gray-600 group-hover:text-blue-600 font-medium">{r.label}</span>
                                     </motion.button>
                                   ))}
                                 </motion.div>
