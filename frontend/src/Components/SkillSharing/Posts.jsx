@@ -73,6 +73,8 @@ const Posts = () => {
   const [postIdToDelete, setPostIdToDelete] = useState(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [commentDrawerPostId, setCommentDrawerPostId] = useState(null);
+  const [reactions, setReactions] = useState({});
+  const [comments, setComments] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -285,6 +287,59 @@ const Posts = () => {
     background: 'radial-gradient(circle at top left, #e0f2fe 10%, #f3e8ff 60%, #e6f7f0 100%)'
   };
 
+  // Fetch reactions for a post
+  const fetchReactions = async (postId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8080/api/reactions/post/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setReactions(prev => ({ ...prev, [postId]: response.data || [] }));
+    } catch (error) {
+      setReactions(prev => ({ ...prev, [postId]: [] }));
+    }
+  };
+
+  // Fetch comments for a post
+  const fetchComments = async (postId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8080/api/comments/post/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const commentList = response.data?._embedded?.commentDTOList || [];
+      setComments(prev => ({ ...prev, [postId]: commentList }));
+    } catch (error) {
+      setComments(prev => ({ ...prev, [postId]: [] }));
+    }
+  };
+
+  // When opening the comment drawer, also fetch reactions and comments
+  const handleCommentDrawerToggle = (postId) => {
+    const newPostId = postId === commentDrawerPostId ? null : postId;
+    setCommentDrawerPostId(newPostId);
+    if (newPostId) {
+      fetchComments(newPostId);
+      fetchReactions(newPostId);
+    }
+  };
+
+  // Add reaction handler
+  const handleAddReaction = async (postId, reactionType) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:8080/api/reactions', {
+        reactionType,
+        postId
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchReactions(postId); // Refresh the count
+    } catch (error) {
+      alert('Failed to add reaction.');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col" style={backgroundStyle}>
       <div className="container mx-auto pt-6 md:pt-8 px-2 sm:px-4 flex flex-col md:flex-row gap-4 md:gap-6 flex-1">
@@ -473,50 +528,70 @@ const Posts = () => {
                       {/* Actions Bar - Enhanced */}
                       <div className="border-t border-gray-200 pt-2.5 mt-3 relative">
                         <div className="flex justify-around items-center text-gray-600">
-                          <button
-                            className="flex items-center gap-1.5 py-1.5 px-3 rounded-md hover:bg-gray-100 text-sm transition-colors group"
-                            onMouseEnter={() => setLikePopupIdx(idx)}
-                            onMouseLeave={() => setLikePopupIdx(null)}
-                          >
-                            <ThumbsUp className="w-4 h-4 text-gray-500 group-hover:text-blue-500" /> <span className="group-hover:text-blue-500">Like</span>
-                          </button>
+                          <div className="relative flex items-center gap-1.5">
+                            <button
+                              className="flex items-center gap-1.5 py-1.5 px-3 rounded-md hover:bg-gray-100 text-sm transition-colors group"
+                              onMouseEnter={() => setLikePopupIdx(idx)}
+                              onMouseLeave={() => setLikePopupIdx(null)}
+                              onClick={() => handleAddReaction(post.postId, 'LIKE')}
+                            >
+                              <ThumbsUp className="w-4 h-4 text-gray-500 group-hover:text-blue-500" /> <span className="group-hover:text-blue-500">Like</span>
+                              {/* Like/Reaction count */}
+                              {Array.isArray(reactions[post.postId]) && reactions[post.postId].length > 0 && (
+                                <span className="ml-1 text-xs text-blue-500 font-semibold">{reactions[post.postId].length}</span>
+                              )}
+                            </button>
+                            <AnimatePresence>
+                              {likePopupIdx === idx && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                                  transition={{ duration: 0.15, ease: "easeOut" }}
+                                  className="absolute left-0 -bottom-2 transform translate-y-full z-20 flex gap-1 bg-white rounded-full shadow-xl p-1.5 border border-gray-200"
+                                  onMouseEnter={() => setLikePopupIdx(idx)}
+                                  onMouseLeave={() => setLikePopupIdx(null)}
+                                >
+                                  {reactionEmojis.map((r, i) => (
+                                    <motion.button
+                                      key={i}
+                                      title={r.label}
+                                      className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+                                      whileHover={{ scale: 1.2, y: -3 }}
+                                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                                      onClick={() => handleAddReaction(post.postId, r.label.toUpperCase())}
+                                    >
+                                      {React.cloneElement(r.icon, { className: `${r.icon.props.className} w-5 h-5` })}
+                                    </motion.button>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
                           <button 
                             className="flex items-center gap-1.5 py-1.5 px-3 rounded-md hover:bg-gray-100 text-sm transition-colors group"
-                            onClick={() => setCommentDrawerPostId(post.postId)}
+                            onClick={() => handleCommentDrawerToggle(post.postId)}
                           >
                             <MessageCircle className="w-4 h-4 text-gray-500 group-hover:text-green-500" /> <span className="group-hover:text-green-500">Comment</span>
+                            {/* Comment count */}
+                            {Array.isArray(comments[post.postId]) && comments[post.postId].length > 0 && (
+                              <span className="ml-1 text-xs text-green-500 font-semibold">{comments[post.postId].length}</span>
+                            )}
                           </button>
                           <button className="flex items-center gap-1.5 py-1.5 px-3 rounded-md hover:bg-gray-100 text-sm transition-colors group">
                             <Bookmark className="w-4 h-4 text-gray-500 group-hover:text-purple-500" /> <span className="group-hover:text-purple-500">Save</span>
                           </button>
                         </div>
-                         {/* Keep existing Emoji Popup logic */}
-                        <AnimatePresence>
-                          {likePopupIdx === idx && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                              transition={{ duration: 0.15, ease: "easeOut" }}
-                              className="absolute left-0 -bottom-2 transform translate-y-full z-20 flex gap-1 bg-white rounded-full shadow-xl p-1.5 border border-gray-200"
-                              onMouseEnter={() => setLikePopupIdx(idx)}
-                              onMouseLeave={() => setLikePopupIdx(null)}
-                            >
-                              {reactionEmojis.map((r, i) => (
-                                <motion.button
-                                  key={i}
-                                  title={r.label}
-                                  className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
-                                  whileHover={{ scale: 1.2, y: -3 }}
-                                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                                >
-                                  {React.cloneElement(r.icon, { className: `${r.icon.props.className} w-5 h-5` })}
-                                </motion.button>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </div>
+                      {/* Inline CommentDrawer Section */}
+                      {commentDrawerPostId === post.postId && (
+                        <CommentDrawer
+                          postId={post.postId}
+                          currentUser={{ userId: user.userId, name: user.name, avatar: user.avatar }}
+                          postOwnerId={post.userId}
+                          onClose={() => setCommentDrawerPostId(null)}
+                        />
+                      )}
                     </div>
                   </article>
                 );
@@ -564,15 +639,6 @@ const Posts = () => {
           </MuiButton>
         </DialogActions>
       </Dialog>
-
-      {/* Comment Drawer */}
-      {commentDrawerPostId && (
-        <CommentDrawer
-          postId={commentDrawerPostId}
-          currentUser={{ userId: user.userId, name: user.name, avatar: user.avatar }}
-          onClose={() => setCommentDrawerPostId(null)}
-        />
-      )}
     </div>
   );
 };

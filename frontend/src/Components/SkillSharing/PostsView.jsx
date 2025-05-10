@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { ThumbsUp, MessageCircle, Bookmark, MoreVertical, Hand, Heart, Lightbulb, Laugh, HandHeart, Send, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import avatarPlaceholder from '../../assets/avatar.png';
+import avatar from '../../assets/avatar.png';
 // For later: import { Menu, MenuItem, CircularProgress, Avatar } from '@mui/material';
 
 // Define category colors (can be imported from a shared constants file too)
@@ -53,6 +55,22 @@ function PostsView({
   const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState({});
   const [isSubmitting, setIsSubmitting] = useState({});
+  const [reactions, setReactions] = useState({});
+
+  // Get logged-in user's avatar
+  let currentUserAvatar = avatarPlaceholder;
+  try {
+    const userDataString = localStorage.getItem('user');
+    if (userDataString) {
+      const userObj = JSON.parse(userDataString);
+      if (userObj.profileImage) {
+        const imageName = userObj.profileImage.startsWith('/') ? userObj.profileImage.substring(1) : userObj.profileImage;
+        currentUserAvatar = `http://localhost:8080/api/media/files/${imageName}`;
+      } else if (userObj.avatarUrl) {
+        currentUserAvatar = userObj.avatarUrl;
+      }
+    }
+  } catch (e) {}
 
   // Function to fetch comments for a post
   const fetchComments = async (postId) => {
@@ -70,12 +88,26 @@ function PostsView({
     }
   };
 
+  // Fetch reactions for a post
+  const fetchReactions = async (postId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8080/api/reactions/post/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setReactions(prev => ({ ...prev, [postId]: response.data || [] }));
+    } catch (error) {
+      setReactions(prev => ({ ...prev, [postId]: [] }));
+    }
+  };
+
   // Function to toggle comments section
   const toggleComments = async (postId) => {
     setExpandedComments(prev => {
       const newState = { ...prev, [postId]: !prev[postId] };
       if (newState[postId]) {
         fetchComments(postId);
+        fetchReactions(postId);
       }
       return newState;
     });
@@ -247,13 +279,17 @@ function PostsView({
             
             {/* Actions Bar (Like, Comment, Save) - Basic structure */}
             <div className="flex justify-around items-center border-t border-gray-200 pt-3 mt-auto text-gray-600 font-medium">
-              <div className="relative"> {/* Wrapper for Like button and its popup */}
+              <div className="relative flex items-center gap-1.5"> {/* Wrapper for Like button and its popup */}
                 <button 
                   className="flex items-center gap-1.5 hover:text-blue-600 transition rounded-md px-3 py-1.5 hover:bg-blue-50"
                   onMouseEnter={() => setLikePopupIdx(uniquePopupId)} 
                   onMouseLeave={() => setLikePopupIdx(null)}
                 >
                   <ThumbsUp size={18} /> Like
+                  {/* Like/Reaction count */}
+                  {Array.isArray(reactions[post.postId]) && reactions[post.postId].length > 0 && (
+                    <span className="ml-1 text-xs text-blue-500 font-semibold">{reactions[post.postId].length}</span>
+                  )}
                 </button>
                 <AnimatePresence>
                   {likePopupIdx === uniquePopupId && (
@@ -289,6 +325,10 @@ function PostsView({
                 onClick={() => toggleComments(post.postId)}
               >
                 <MessageCircle size={18} /> Comment
+                {/* Comment count */}
+                {Array.isArray(comments[post.postId]) && comments[post.postId].length > 0 && (
+                  <span className="ml-1 text-xs text-green-500 font-semibold">{comments[post.postId].length}</span>
+                )}
               </button>
               <button className="flex items-center gap-1.5 hover:text-purple-600 transition rounded-md px-3 py-1.5 hover:bg-purple-50">
                 <Bookmark size={18} /> Save
@@ -308,7 +348,7 @@ function PostsView({
                   {/* Comment Input */}
                   <div className="flex gap-3 mb-4">
                     <img 
-                      src={getUserProfileImageUrl(postAuthor?.profileImage)}
+                      src={currentUserAvatar}
                       alt="Your avatar"
                       className="w-8 h-8 rounded-full object-cover"
                     />
@@ -333,41 +373,67 @@ function PostsView({
 
                   {/* Comments List */}
                   <div className="space-y-4">
-                    {(comments[post.postId] || []).map((comment) => (
-                      <motion.div
-                        key={comment.commentId}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex gap-3"
-                      >
-                        <img 
-                          src={getUserProfileImageUrl(comment.user?.profileImage)}
-                          alt={comment.user?.name || 'User'}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                          <div className="bg-gray-50 rounded-2xl px-4 py-2">
-                            <div className="font-medium text-sm text-gray-900">
-                              {comment.user?.name || 'Unknown User'}
+                    {(comments[post.postId] || []).map((comment) => {
+                      // Use backend-provided fields for name and avatar
+                      const commenterName = comment.commenterUsername || 'Unknown User';
+                      const commenterAvatarUrl = comment.commenterAvatarUrl
+                        ? `http://localhost:8080/api/media/files/${comment.commenterAvatarUrl.startsWith('/') ? comment.commenterAvatarUrl.substring(1) : comment.commenterAvatarUrl}`
+                        : avatarPlaceholder;
+                      const canDelete = currentUserId === comment.userId;
+                      return (
+                        <motion.div
+                          key={comment.commentId}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="flex gap-3"
+                        >
+                          <img 
+                            src={commenterAvatarUrl}
+                            alt={commenterName}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                          <div className="flex-1">
+                            <div className="bg-gray-50 rounded-2xl px-4 py-2">
+                              <div className="font-medium text-sm text-gray-900">
+                                {commenterName}
+                              </div>
+                              <p className="text-gray-700 text-sm">{comment.content}</p>
                             </div>
-                            <p className="text-gray-700 text-sm">{comment.content}</p>
+                            <div className="flex items-center gap-4 mt-1 px-2">
+                              <span className="text-xs text-gray-500">
+                                {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : ''}
+                              </span>
+                              {/* Delete button for comment owner */}
+                              {canDelete && (
+                                <button
+                                  className="text-xs text-red-500 hover:text-red-600"
+                                  onClick={async () => {
+                                    if (window.confirm('Are you sure you want to delete this comment?')) {
+                                      try {
+                                        const token = localStorage.getItem('token');
+                                        await axios.delete(`http://localhost:8080/api/comments/${comment.commentId}`, {
+                                          headers: { Authorization: `Bearer ${token}` }
+                                        });
+                                        // Refresh comments
+                                        const response = await axios.get(`http://localhost:8080/api/comments/post/${post.postId}`, {
+                                          headers: { Authorization: `Bearer ${token}` }
+                                        });
+                                        const commentList = response.data?._embedded?.commentDTOList || [];
+                                        setComments(prev => ({ ...prev, [post.postId]: commentList }));
+                                      } catch (err) {
+                                        alert('Failed to delete comment.');
+                                      }
+                                    }
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-4 mt-1 px-2">
-                            <span className="text-xs text-gray-500">
-                              {new Date(comment.createdAt).toLocaleDateString()}
-                            </span>
-                            <button className="text-xs text-gray-500 hover:text-blue-600">
-                              Reply
-                            </button>
-                            {currentUserId === comment.userId && (
-                              <button className="text-xs text-red-500 hover:text-red-600">
-                                Delete
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </motion.div>
               )}
