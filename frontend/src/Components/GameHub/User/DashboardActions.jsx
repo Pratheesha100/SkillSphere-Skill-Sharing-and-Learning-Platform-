@@ -11,7 +11,7 @@ const DashboardActions = () => {
       description: 'Test your knowledge with multiple choice questions',
       icon: '🎯',
       secondaryIcon: '📚',
-      path: '/quiz',
+      path: '/gamehub/quiz',
       color: 'from-blue-500 to-indigo-600',
       stats: { completed: 12, achievements: 3 }
     },
@@ -20,7 +20,7 @@ const DashboardActions = () => {
       description: 'Challenge your memory with matching exercises',
       icon: '🧩',
       secondaryIcon: '🔮',
-      path: '/memory-match',
+      path: '/gamehub/memory-match',
       color: 'from-purple-500 to-pink-500',
       stats: { completed: 8, achievements: 2 }
     },
@@ -29,7 +29,7 @@ const DashboardActions = () => {
       description: 'Track your learning journey and achievements',
       icon: '🏆',
       secondaryIcon: '⭐',
-      path: '/progress',
+      path: '/gamehub/progress',
       color: 'from-yellow-400 to-orange-500',
       stats: { level: 5, xp: 1250 }
     }

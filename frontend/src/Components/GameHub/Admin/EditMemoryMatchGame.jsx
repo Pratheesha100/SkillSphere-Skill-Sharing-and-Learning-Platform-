@@ -12,7 +12,6 @@ import {
   Alert,
   CircularProgress,
   Grid,
-  Chip,
   Paper
 } from '@mui/material';
 import axios from 'axios';
@@ -24,7 +23,6 @@ const EditMemoryMatchGame = () => {
     paragraph: '',
     category: '',
     level: '',
-    blanks: [],
     options: [],
     timer: 300,
     type: 'MEMORY_MATCH'
@@ -56,21 +54,12 @@ const EditMemoryMatchGame = () => {
     }));
   };
 
-  const handleBlanksChange = (index, value) => {
-    const newBlanks = [...game.blanks];
-    newBlanks[index] = value;
-    setGame(prev => ({
-      ...prev,
-      blanks: newBlanks
-    }));
-  };
-
   const handleOptionsChange = (index, value) => {
     const newOptions = [...game.options];
     newOptions[index] = value;
     setGame(prev => ({
-      ...prev,
-      options: newOptions
+        ...prev,
+        options: newOptions
     }));
   };
 
@@ -152,34 +141,20 @@ const EditMemoryMatchGame = () => {
             </Grid>
           </Grid>
 
-          <Typography variant="h6" gutterBottom>
-            Blanks (Correct Answers)
-          </Typography>
-          {game.blanks.map((blank, index) => (
-            <TextField
-              key={index}
-              fullWidth
-              label={`Blank ${index + 1}`}
-              value={blank}
-              onChange={(e) => handleBlanksChange(index, e.target.value)}
-              sx={{ mb: 2 }}
-            />
-          ))}
-
-          <Typography variant="h6" gutterBottom>
-            Options
-          </Typography>
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            {game.options.map((option, index) => (
-              <Grid item xs={12} sm={6} key={index}>
-                <TextField
-                  fullWidth
-                  label={`Option ${index + 1}`}
-                  value={option}
-                  onChange={(e) => handleOptionsChange(index, e.target.value)}
-                />
-              </Grid>
-            ))}
+          <Grid container spacing={2} sx={{ mb: 2 }}>
+            <Grid item xs={12}>
+                <Typography variant="subtitle1">Options</Typography>
+                {game.options.map((option, index) => (
+                    <TextField
+                        key={index}
+                        fullWidth
+                        label={`Option ${index + 1}`}
+                        value={option}
+                        onChange={(e) => handleOptionsChange(index, e.target.value)}
+                        sx={{ mb: 1 }}
+                    />
+                ))}
+            </Grid>
           </Grid>
 
           <TextField

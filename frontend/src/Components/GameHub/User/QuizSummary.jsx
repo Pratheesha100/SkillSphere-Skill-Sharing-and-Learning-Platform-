@@ -1,10 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Confetti from './Confetti';
 
 const QuizSummary = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const results = location.state?.results;
+  const [results, setResults] = useState(location.state?.results);
+
+  useEffect(() => {
+    // If no results in state, try to get from localStorage
+    if (!results) {
+      const savedResults = localStorage.getItem('quizResults');
+      if (savedResults) {
+        setResults(JSON.parse(savedResults));
+      }
+    }
+  }, [results]);
 
   if (!results) {
     return (
@@ -18,7 +29,7 @@ const QuizSummary = () => {
           <h2 className="text-xl font-semibold text-gray-800 mb-2">No Results Found</h2>
           <p className="text-gray-600 mb-6">Please complete a quiz to see your results.</p>
           <button
-            onClick={() => navigate('/game-hub')}
+            onClick={() => navigate('/gamehub')}
             className="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Return to Game Hub
@@ -36,8 +47,14 @@ const QuizSummary = () => {
   if (score >= 75) badges.push('Quick Learner');
   if (score >= 60) badges.push('Getting Started');
 
+  // Clear localStorage after displaying results
+  useEffect(() => {
+    localStorage.removeItem('quizResults');
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-8 px-4">
+      {score === 100 && <Confetti />}
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
@@ -63,6 +80,34 @@ const QuizSummary = () => {
             </div>
           </div>
 
+          {/* Question Review */}
+          {results.questions && results.answers && (
+            <div className="p-6 border-b border-gray-100">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Question Review</h2>
+              <div className="space-y-4">
+                {results.questions.map((question, index) => (
+                  <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                    <p className="font-medium text-gray-900 mb-2">{question.questionText}</p>
+                    <div className="space-y-2">
+                      <p className="text-sm">
+                        <span className="font-medium">Your answer: </span>
+                        <span className={results.answers[index] === question.correctAnswer ? 'text-green-600' : 'text-red-600'}>
+                          {results.answers[index]}
+                        </span>
+                      </p>
+                      {results.answers[index] !== question.correctAnswer && (
+                        <p className="text-sm">
+                          <span className="font-medium">Correct answer: </span>
+                          <span className="text-green-600">{question.correctAnswer}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Badges */}
           {badges.length > 0 && (
             <div className="p-6 border-b border-gray-100">
@@ -83,13 +128,13 @@ const QuizSummary = () => {
           {/* Actions */}
           <div className="p-6 bg-gray-50 flex flex-col sm:flex-row gap-4">
             <button
-              onClick={() => navigate('/game-hub')}
+              onClick={() => navigate('/gamehub')}
               className="flex-1 bg-white text-gray-700 py-2 px-4 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
             >
               Return to Game Hub
             </button>
             <button
-              onClick={() => navigate('/quiz')}
+              onClick={() => navigate('/gamehub/quiz')}
               className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Try Another Quiz

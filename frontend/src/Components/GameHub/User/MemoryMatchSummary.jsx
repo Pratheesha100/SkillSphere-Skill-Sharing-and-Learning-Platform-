@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Confetti from './Confetti';
 
 const MemoryMatchSummary = () => {
   const location = useLocation();
@@ -18,7 +19,7 @@ const MemoryMatchSummary = () => {
           <h2 className="text-xl font-semibold text-gray-800 mb-2">No Results Found</h2>
           <p className="text-gray-600 mb-6">Please complete a memory match game to see your results.</p>
           <button
-            onClick={() => navigate('/game-hub')}
+            onClick={() => navigate('/gamehub')}
             className="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Return to Game Hub
@@ -37,6 +38,7 @@ const MemoryMatchSummary = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50 py-8 px-4">
+      {results.score === 100 && <Confetti />}
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
@@ -44,7 +46,7 @@ const MemoryMatchSummary = () => {
             <h1 className="text-3xl font-bold text-white mb-2">Memory Match Results</h1>
             <div className="text-4xl font-bold text-white mb-2">{results.score}%</div>
             <p className="text-indigo-100">
-              {results.score === 100 ? 'Perfect Score!' : 'Keep practicing!'}
+              {results.correctAnswers} out of {results.totalQuestions} correct
             </p>
           </div>
 
@@ -82,13 +84,13 @@ const MemoryMatchSummary = () => {
           {/* Actions */}
           <div className="p-6 bg-gray-50 flex flex-col sm:flex-row gap-4">
             <button
-              onClick={() => navigate('/game-hub')}
+              onClick={() => navigate('/gamehub')}
               className="flex-1 bg-white text-gray-700 py-2 px-4 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
             >
               Return to Game Hub
             </button>
             <button
-              onClick={() => navigate('/memory-match')}
+              onClick={() => navigate('/gamehub/memory-match')}
               className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors"
             >
               Try Another Game

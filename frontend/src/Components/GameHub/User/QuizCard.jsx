@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const QuizCard = ({ question, options, onAnswer, isLastQuestion }) => {
+const QuizCard = ({ question, options, onAnswer, isLastQuestion, onFinishQuiz }) => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
 
@@ -11,6 +11,11 @@ const QuizCard = ({ question, options, onAnswer, isLastQuestion }) => {
   }, [question]); // Reset when question changes
 
   const handleOptionClick = (option) => {
+    // Allow changing answer on last question until Finish Quiz is clicked
+    if (isLastQuestion) {
+      setSelectedOption(option);
+      return;
+    }
     if (isAnswered) return;
     setSelectedOption(option);
   };
@@ -35,13 +40,13 @@ const QuizCard = ({ question, options, onAnswer, isLastQuestion }) => {
           <button
             key={index}
             onClick={() => handleOptionClick(option)}
-            disabled={isAnswered}
+            disabled={!isLastQuestion && isAnswered}
             className={`w-full p-4 text-left rounded-lg transition-all duration-200
               ${selectedOption === option
                 ? 'bg-indigo-50 border-2 border-indigo-500'
                 : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100'
               }
-              ${isAnswered ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}
+              ${!isLastQuestion && isAnswered ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'}
             `}
           >
             <div className="flex items-center">
@@ -54,27 +59,38 @@ const QuizCard = ({ question, options, onAnswer, isLastQuestion }) => {
         ))}
       </div>
 
-      {/* Submit Button */}
-      <div className="p-6 bg-gray-50 border-t border-gray-100">
-        <button
-          onClick={handleSubmit}
-          disabled={!selectedOption || isAnswered}
-          className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200
-            ${!selectedOption || isAnswered
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-indigo-600 text-white hover:bg-indigo-700'
-            }
-          `}
-        >
-          {isLastQuestion ? 'Finish Quiz' : 'Next Question'}
-        </button>
+      {/* Submit and Finish Quiz Buttons */}
+      <div className="p-6 bg-gray-50 border-t border-gray-100 flex gap-2">
+        {!isLastQuestion && (
+          <button
+            onClick={handleSubmit}
+            disabled={!selectedOption || isAnswered}
+            className={`flex-1 py-3 px-6 rounded-lg font-medium transition-all duration-200
+              ${!selectedOption || isAnswered
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              }
+            `}
+          >
+            Next Question
+          </button>
+        )}
+        {isLastQuestion && (
+          <button
+            onClick={() => onFinishQuiz(selectedOption)}
+            disabled={!selectedOption}
+            className="flex-1 py-3 px-6 rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 transition-all duration-200"
+          >
+            Finish Quiz
+          </button>
+        )}
       </div>
 
       {/* Progress Indicator */}
       <div className="h-1 bg-gray-100">
         <div 
           className="h-full bg-indigo-600 transition-all duration-300"
-          style={{ width: `${isAnswered ? '100%' : '0%'}` }}
+          style={{ width: `${!isLastQuestion && isAnswered ? '100%' : '0%'}` }}
         />
       </div>
     </div>

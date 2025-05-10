@@ -8,7 +8,7 @@ const navLinks = [
   { name: "About Us", path: "/about" },
   { name: "Posts", path: "/posts" },
   { name: "Tasks Corner", path: "/TaskCorner" },
-  { name: "GameHub", path: "" },
+  { name: "GameHub", path: "/gamehub" },
   { name: "Groups", path: "" },
   { name: "Leader Board", path: "" },
 ];

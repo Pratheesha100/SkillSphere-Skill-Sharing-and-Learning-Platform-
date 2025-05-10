@@ -2,7 +2,9 @@ package com.aspira.backend.service;
 
 import com.aspira.backend.dto.GameDTO;
 import com.aspira.backend.model.Game;
+import com.aspira.backend.model.User;
 import com.aspira.backend.repository.GameRepository;
+import com.aspira.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -21,6 +23,9 @@ public class GameService {
 
     @Autowired
     private GameRepository gameRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public List<GameDTO> getAllGames() {
         return gameRepository.findAll()

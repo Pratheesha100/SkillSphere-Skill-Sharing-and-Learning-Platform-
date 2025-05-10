@@ -63,7 +63,7 @@ const MCQList = () => {
   };
 
   const handleEdit = (set) => {
-    navigate(`/admin/edit-game/${set.id}`);
+    navigate(`/admin/edit-mcq/${set.id}`);
   };
 
   const handlePreview = (set) => {

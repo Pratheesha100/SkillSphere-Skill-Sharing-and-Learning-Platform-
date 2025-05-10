@@ -68,7 +68,7 @@ const EditMcqGame = () => {
       setSuccess('MCQ game updated successfully');
       setTimeout(() => {
         navigate('/admin/mcq-list');
-      }, 2000);
+      }, 1000); // Reduced delay to 1 second
     } catch (err) {
       setError('Failed to update MCQ game');
     }

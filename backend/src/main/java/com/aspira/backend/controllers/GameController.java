@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 import java.util.HashMap;
@@ -24,11 +26,13 @@ public class GameController {
     private GameService gameService;
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public List<GameDTO> getAllGames() {
         return gameService.getAllGames();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<GameDTO> getGame(@PathVariable Long id) {
         GameDTO game = gameService.getGameById(id);
         if (game == null) {
@@ -38,6 +42,7 @@ public class GameController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GameDTO> addGame(@RequestBody GameDTO dto) {
         try {
             logger.info("Received game DTO: {}", dto);
@@ -50,6 +55,7 @@ public class GameController {
     }
 
     @PostMapping("/memory-match")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> addMemoryMatchGame(@RequestBody GameDTO dto) {
         try {
             logger.info("Received memory match game DTO: {}", dto);
@@ -81,6 +87,7 @@ public class GameController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GameDTO> updateGame(@PathVariable Long id, @RequestBody GameDTO dto) {
         try {
             GameDTO updated = gameService.updateGame(id, dto);
@@ -95,6 +102,7 @@ public class GameController {
     }
 
     @PutMapping("/memory-match/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<GameDTO> updateMemoryMatchGame(@PathVariable Long id, @RequestBody GameDTO dto) {
         try {
             GameDTO updated = gameService.updateMemoryMatchGame(id, dto);
@@ -109,24 +117,13 @@ public class GameController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteGame(@PathVariable Long id) {
         try {
             gameService.deleteGame(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             logger.error("Error deleting game: ", e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-
-    @PostMapping("/results")
-    public ResponseEntity<?> submitGameResults(@RequestBody Map<String, Object> results) {
-        try {
-            logger.info("Received game results: {}", results);
-            // TODO: Add logic to store results in the database
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            logger.error("Error submitting game results: ", e);
             return ResponseEntity.internalServerError().build();
         }
     }

@@ -34,45 +34,56 @@ const Quiz = () => {
     const newAnswers = [...answers, answer];
     setAnswers(newAnswers);
 
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
+    // Check if this is the last question
+    if (currentQuestionIndex === questions.length - 1) {
+      // If it's the last question, complete the quiz
       handleQuizCompletion(newAnswers);
+    } else {
+      // Move to next question
+      setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
-  const handleQuizCompletion = async (finalAnswers) => {
-    try {
-      const results = {
-        totalQuestions: questions.length,
-        correctAnswers: finalAnswers.filter((answer, index) => 
-          answer === questions[index].correctAnswer
-        ).length,
-        timeTaken: 300 - timeLeft,
-        answers: finalAnswers
-      };
+  const handleQuizCompletion = (finalAnswers) => {
+    // Calculate results
+    const correctAnswersCount = finalAnswers.filter(
+      (answer, index) => answer === questions[index].correctAnswer
+    ).length;
+    const score = Math.round((correctAnswersCount / questions.length) * 100);
 
-      // Save results to backend
-      await axios.post('http://localhost:8080/api/games/results', results);
+    // Create results object
+    const results = {
+      correctAnswers: correctAnswersCount,
+      totalQuestions: questions.length,
+      score: score,
+      timeTaken: 300 - timeLeft,
+      answers: finalAnswers,
+      questions: questions
+    };
 
-      // Show success message
-      await Swal.fire({
-        title: 'Quiz Completed!',
-        text: `You scored ${results.correctAnswers} out of ${questions.length}`,
-        icon: 'success',
-        confirmButtonText: 'View Summary'
+    // Store results in localStorage
+    localStorage.setItem('quizResults', JSON.stringify(results));
+
+    // Show completion message
+    Swal.fire({
+      title: 'Quiz Completed!',
+      text: `You scored ${correctAnswersCount} out of ${questions.length}`,
+      icon: 'success',
+      confirmButtonText: 'View Summary'
+    }).then(() => {
+      // Navigate to summary page after user clicks the button
+      navigate('/gamehub/quiz-summary', { 
+        state: { results }
       });
-
-      // Navigate to summary
-      navigate('/quiz-summary', { state: { results } });
-    } catch (err) {
-      Swal.fire({
-        title: 'Error',
-        text: 'Failed to save results. Please try again.',
-        icon: 'error'
-      });
-    }
+    });
   };
+
+  // Handle timer completion
+  useEffect(() => {
+    if (timeLeft === 0) {
+      handleQuizCompletion(answers);
+    }
+  }, [timeLeft]);
 
   if (isLoading) {
     return (
@@ -111,7 +122,7 @@ const Quiz = () => {
           <h2 className="text-xl font-semibold text-gray-800 mb-2">No Questions Available</h2>
           <p className="text-gray-600 mb-6">There are no questions available at the moment.</p>
           <button
-            onClick={() => navigate('/game-hub')}
+            onClick={() => navigate('/gamehub')}
             className="bg-indigo-600 text-white py-2 px-6 rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Return to Game Hub
@@ -151,6 +162,16 @@ const Quiz = () => {
           options={options}
           onAnswer={handleAnswer}
           isLastQuestion={currentQuestionIndex === questions.length - 1}
+          onFinishQuiz={(selectedOption) => {
+            // Add or update the last answer
+            let newAnswers = [...answers];
+            if (newAnswers.length < questions.length) {
+              newAnswers.push(selectedOption);
+            } else {
+              newAnswers[newAnswers.length - 1] = selectedOption;
+            }
+            handleQuizCompletion(newAnswers);
+          }}
         />
       </div>
     </div>

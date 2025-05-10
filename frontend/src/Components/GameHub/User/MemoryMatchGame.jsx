@@ -7,6 +7,8 @@ import Swal from 'sweetalert2';
 const MemoryMatchGame = () => {
   const [game, setGame] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState([]);
+  const [activeBlank, setActiveBlank] = useState(0);
+  const [draggedOption, setDraggedOption] = useState(null);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,12 +33,35 @@ const MemoryMatchGame = () => {
   };
 
   const handleOptionClick = (option) => {
-    if (selectedOptions.length >= game.blanks.length) return;
-    setSelectedOptions([...selectedOptions, option]);
+    if (!game) return;
+    if (selectedOptions.includes(option)) return;
+    const newOptions = [...selectedOptions];
+    newOptions[activeBlank] = option;
+    setSelectedOptions(newOptions);
+    if (activeBlank < game.blanks.length - 1) {
+      setActiveBlank(activeBlank + 1);
+    }
+  };
+
+  const handleClearBlank = (index) => {
+    const newOptions = [...selectedOptions];
+    newOptions[index] = undefined;
+    setSelectedOptions(newOptions);
+    setActiveBlank(index);
+  };
+
+  const handleDrop = (index) => {
+    if (!draggedOption || selectedOptions.includes(draggedOption)) return;
+    const newOptions = [...selectedOptions];
+    newOptions[index] = draggedOption;
+    setSelectedOptions(newOptions);
+    setActiveBlank(index < game.blanks.length - 1 ? index + 1 : index);
+    setDraggedOption(null);
   };
 
   const handleSubmit = async () => {
-    if (selectedOptions.length !== game.blanks.length) {
+    if (!game) return;
+    if (selectedOptions.filter(Boolean).length !== game.blanks.length) {
       Swal.fire({
         title: 'Incomplete',
         text: 'Please fill in all blanks before submitting.',
@@ -47,22 +72,21 @@ const MemoryMatchGame = () => {
 
     const isCorrect = selectedOptions.every((option, index) => option === game.blanks[index]);
     const results = {
-      type: 'MEMORY_MATCH',
       score: isCorrect ? 100 : 0,
       timeTaken: 300 - timeLeft,
-      answers: selectedOptions
+      answers: selectedOptions,
+      correctAnswers: isCorrect ? game.blanks.length : 0,
+      totalQuestions: game.blanks.length
     };
 
-    try {
-      await axios.post('http://localhost:8080/api/games/results', results);
-      navigate('/memory-match-summary', { state: { results } });
-    } catch (err) {
-      Swal.fire({
-        title: 'Error',
-        text: 'Failed to save results. Please try again.',
-        icon: 'error'
-      });
-    }
+    await Swal.fire({
+      title: 'Game Completed!',
+      text: isCorrect ? 'Perfect Score!' : 'Keep practicing!',
+      icon: isCorrect ? 'success' : 'info',
+      confirmButtonText: 'View Summary'
+    });
+
+    navigate('/gamehub/memory-match-summary', { state: { results } });
   };
 
   if (isLoading) {
@@ -112,13 +136,32 @@ const MemoryMatchGame = () => {
     );
   }
 
-  const paragraph = game.paragraph.split('___').map((part, index) => {
-    if (index === game.paragraph.split('___').length - 1) return part;
+  // Render paragraph with interactive blanks
+  const paragraphParts = game.paragraph.split('___');
+  const paragraph = paragraphParts.map((part, index) => {
+    if (index === paragraphParts.length - 1) return part;
     return (
       <React.Fragment key={index}>
         {part}
-        <span className="inline-block w-24 h-8 mx-1 border-b-2 border-indigo-500">
+        <span
+          className={`inline-block w-24 h-8 mx-1 border-b-2 border-indigo-500 cursor-pointer ${activeBlank === index ? 'bg-indigo-100' : ''}`}
+          onClick={() => setActiveBlank(index)}
+          onDragOver={e => e.preventDefault()}
+          onDrop={e => {
+            e.preventDefault();
+            handleDrop(index);
+          }}
+        >
           {selectedOptions[index] || ''}
+          {selectedOptions[index] && (
+            <button
+              className="ml-1 text-red-500"
+              onClick={e => {
+                e.stopPropagation();
+                handleClearBlank(index);
+              }}
+            >×</button>
+          )}
         </span>
       </React.Fragment>
     );
@@ -149,6 +192,9 @@ const MemoryMatchGame = () => {
               {game.options.map((option, index) => (
                 <button
                   key={index}
+                  draggable
+                  onDragStart={() => setDraggedOption(option)}
+                  onDragEnd={() => setDraggedOption(null)}
                   onClick={() => handleOptionClick(option)}
                   disabled={selectedOptions.includes(option)}
                   className={`p-3 rounded-lg text-center transition-all duration-200
@@ -168,9 +214,9 @@ const MemoryMatchGame = () => {
           <div className="p-6 bg-white border-t border-gray-100">
             <button
               onClick={handleSubmit}
-              disabled={selectedOptions.length !== game.blanks.length}
+              disabled={selectedOptions.filter(Boolean).length !== game.blanks.length}
               className={`w-full py-3 px-6 rounded-lg font-medium transition-all duration-200
-                ${selectedOptions.length !== game.blanks.length
+                ${selectedOptions.filter(Boolean).length !== game.blanks.length
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-indigo-600 text-white hover:bg-indigo-700'
                 }
