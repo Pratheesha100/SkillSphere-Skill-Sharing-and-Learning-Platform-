@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, TextField, Button, MenuItem, CircularProgress, Snackbar, Alert } from '@mui/material';
+import { Modal, TextField, Button, MenuItem, CircularProgress, Snackbar, Alert, IconButton } from '@mui/material';
+import { CloudUpload as CloudUploadIcon, Close as CloseIcon } from '@mui/icons-material';
 import axios from 'axios';
 
 const categories = [
@@ -24,30 +25,46 @@ function PostCreate({ onClose }) {
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
-    // Separate images and videos
-    const images = selectedFiles.filter(f => f.type.startsWith('image/'));
-    const videos = selectedFiles.filter(f => f.type.startsWith('video/'));
-    // Enforce max 3 images and 1 video
-    let newImages = images.slice(0, 3);
-    let newVideos = videos.slice(0, 1);
-    if (images.length > 3) {
-      setError('You can upload up to 3 images only.');
-    } else if (videos.length > 1) {
-      setError('You can upload only 1 video.');
-    } else {
-      setError(null);
+    const currentImageCount = files.filter(f => f.type.startsWith('image/')).length;
+    const currentVideoCount = files.filter(f => f.type.startsWith('video/')).length;
+
+    let newImages = [];
+    let newVideos = [];
+
+    for (const file of selectedFiles) {
+      if (file.type.startsWith('image/')) {
+        if (newImages.length + currentImageCount < 3) {
+          newImages.push(file);
+        } else {
+          setError('You can upload up to 3 images only.');
+          break; 
+        }
+      } else if (file.type.startsWith('video/')) {
+        if (newVideos.length + currentVideoCount < 1) {
+          newVideos.push(file);
+        } else {
+          setError('You can upload only 1 video.');
+          break; 
+        }
+      }
     }
-    const newFiles = [...newImages, ...newVideos];
-    setFiles(newFiles);
-    // Generate previews
-    const readers = newFiles.map(f => {
+    
+    const updatedFiles = [...files, ...newImages, ...newVideos];
+    setFiles(updatedFiles);
+    
+    const readers = updatedFiles.map(f => {
       return new Promise(resolve => {
         const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
+        reader.onloadend = () => resolve({ file: f, url: reader.result });
         reader.readAsDataURL(f);
       });
     });
     Promise.all(readers).then(urls => setPreviewUrls(urls));
+  };
+
+  const removePreview = (fileToRemove) => {
+    setFiles(prevFiles => prevFiles.filter(f => f !== fileToRemove));
+    setPreviewUrls(prevPreviews => prevPreviews.filter(p => p.file !== fileToRemove));
   };
 
   const handleSubmit = async (e) => {
@@ -87,45 +104,55 @@ function PostCreate({ onClose }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold mb-2">Create Post</h2>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-y-5 p-1">
+      <h2 className="text-2xl font-semibold text-gray-700 mb-1 text-center">Create New Post</h2>
       <TextField
         label="Title"
+        variant="outlined"
         value={title}
         onChange={e => setTitle(e.target.value)}
         required
         disabled={loading}
         fullWidth
+        size="small"
       />
       <TextField
         label="Content"
+        variant="outlined"
         value={content}
         onChange={e => setContent(e.target.value)}
         required
         multiline
-        minRows={3}
+        minRows={4}
         disabled={loading}
         fullWidth
+        size="small"
       />
       <TextField
         select
         label="Category"
+        variant="outlined"
         value={category}
         onChange={e => setCategory(e.target.value)}
         required
         disabled={loading}
         fullWidth
+        size="small"
       >
         {categories.map(cat => (
           <MenuItem key={cat} value={cat}>{cat}</MenuItem>
         ))}
       </TextField>
+      
       <Button
-        variant="outlined"
+        variant="contained"
         component="label"
         disabled={loading}
+        fullWidth
+        startIcon={<CloudUploadIcon />}
+        sx={{ bgcolor: '#edf2f7', color: '#4a5568', '&:hover': { bgcolor: '#e2e8f0' } }}
       >
-        Upload Media (max 3 images, 1 video)
+        Upload Media (Max: 3 Images, 1 Video)
         <input
           type="file"
           hidden
@@ -134,30 +161,46 @@ function PostCreate({ onClose }) {
           onChange={handleFileChange}
         />
       </Button>
+
       {previewUrls.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {files.map((file, idx) => (
-            <div key={idx} className="">
-              {file.type.startsWith('image/') ? (
-                <img src={previewUrls[idx]} alt="Preview" className="max-w-[120px] max-h-32 rounded-lg" />
-              ) : (
-                <video src={previewUrls[idx]} controls className="max-w-[120px] max-h-32 rounded-lg" />
-              )}
-            </div>
-          ))}
+        <div className="mt-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+          <h4 className="text-sm font-medium text-gray-600 mb-2">Media Previews:</h4>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {previewUrls.map((preview, idx) => (
+              <div key={idx} className="relative group border rounded-md overflow-hidden shadow-sm aspect-square">
+                {preview.file.type.startsWith('image/') ? (
+                  <img src={preview.url} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                ) : (
+                  <video src={preview.url} controls className="w-full h-full object-cover bg-black" />
+                )}
+                <IconButton 
+                  size="small"
+                  onClick={() => removePreview(preview.file)}
+                  className="absolute top-1 right-1 bg-black bg-opacity-40 text-white hover:bg-opacity-60 opacity-0 group-hover:opacity-100 transition-opacity"
+                  disabled={loading}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </div>
+            ))}
+          </div>
         </div>
       )}
-      <div className="flex gap-2 mt-2">
-        <Button variant="contained" color="primary" type="submit" disabled={loading}>
-          {loading ? <CircularProgress size={24} /> : 'Post'}
+
+      <div className="flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-200">
+        <Button variant="outlined" onClick={onClose} disabled={loading} sx={{textTransform: 'none'}}>
+          Cancel
         </Button>
-        <Button variant="outlined" onClick={onClose} disabled={loading}>Cancel</Button>
+        <Button variant="contained" color="primary" type="submit" disabled={loading} sx={{textTransform: 'none', px:3}}>
+          {loading ? <CircularProgress size={22} color="inherit" /> : 'Create Post'}
+        </Button>
       </div>
-      <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError(null)}>
-        <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>
+
+      <Snackbar open={!!error} autoHideDuration={4000} onClose={() => setError(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity="error" onClose={() => setError(null)} sx={{ width: '100%' }}>{error}</Alert>
       </Snackbar>
-      <Snackbar open={!!success} autoHideDuration={2000} onClose={() => setSuccess(null)}>
-        <Alert severity="success" onClose={() => setSuccess(null)}>{success}</Alert>
+      <Snackbar open={!!success} autoHideDuration={2000} onClose={() => setSuccess(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity="success" onClose={() => setSuccess(null)} sx={{ width: '100%' }}>{success}</Alert>
       </Snackbar>
     </form>
   );

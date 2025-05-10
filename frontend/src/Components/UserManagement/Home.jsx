@@ -163,7 +163,7 @@ export default function Home() {
       
         <div className="max-w-7xl mx-auto px-4 mt-10">
           <div className="text-center mb-2 text-sm text-[#182d83] font-semibold">Top Categories</div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-8">Popular Topics To Learn</h2>
+          <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-8">Popular Topics To Discover</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {categories.map((cat, idx) => (
               <motion.div
@@ -183,7 +183,7 @@ export default function Home() {
                   {React.cloneElement(cat.icon, { className: 'w-8 h-8 text-blue-800' })}
                 </div>
                 <div className="font-bold text-lg text-gray-800 mb-1 text-center">{cat.title}</div>
-                <div className="text-sm text-gray-400 text-center">{cat.courses}+ Courses</div>
+                <div className="text-sm text-gray-400 text-center">{cat.courses}+ Posts</div>
               </motion.div>
             ))}
           </div>
