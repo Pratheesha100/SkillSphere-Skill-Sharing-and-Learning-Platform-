@@ -16,7 +16,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,9 +80,14 @@ public class UserService {
 
     // Get user by username
     public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        try {
+            return userRepository.findAll().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("Error fetching all users", e);
+            throw new RuntimeException("Failed to fetch users", e);
+        }
     }
 
     @Transactional
@@ -217,6 +221,7 @@ public class UserService {
         userDTO.setCountry(user.getCountry());
         userDTO.setCity(user.getCity());
         userDTO.setPostalCode(user.getPostalCode());
+        userDTO.setProvider(user.getProvider());
         return userDTO;
     }
 }
