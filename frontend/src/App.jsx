@@ -13,6 +13,7 @@ import Leaderboard from './Components/Interactivity&Engagement/Leaderboard';
 import AboutUs from './Components/UserManagement/AboutUs';
 import GroupView from './Components/GroupManagement/GroupView.jsx';
 import GroupChat from './Components/GroupManagement/GroupChat.jsx';
+import TaskView from './Components/SkillSharing/TaskView.jsx';
 
 function App() {
   const [count, setCount] = useState(0);
@@ -29,6 +30,8 @@ function App() {
       <Route path="/TaskCorner" element={<Layout><TaskCorner /></Layout>} />
       <Route path="/posts" element={<Layout><Posts /></Layout>} />
       <Route path="/postview" element={<Layout><PostsView /></Layout>} />
+      <Route path="/tasks" element={<Layout><TaskCorner /></Layout>} />
+      <Route path="/tasks/:taskId" element={<Layout><TaskView /></Layout>} />
 
       {/* Interactivity Routes */}
       <Route path="/test-database-connection" element={<DatabaseCheck />} />

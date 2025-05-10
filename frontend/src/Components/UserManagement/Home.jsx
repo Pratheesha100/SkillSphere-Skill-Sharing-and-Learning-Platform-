@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Search, Smile, Users, BookOpen, Camera, Music, BarChart2, Cpu, Layers, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Search, Smile, Users, BookOpen, Camera, Music, BarChart2, Cpu, Layers, Award } from "lucide-react";
 import laying from "../../assets/Float.png";
 import studying from "../../assets/Studying.png";
 
@@ -53,6 +53,12 @@ export default function Home() {
             >
              Discover courses, share your expertise, and collaborate with others to expand your skillset <br/> Join a thriving community of knowledge seekers and elevate your learning journey.
             </motion.p>
+            <button
+              onClick={() => navigate("/TaskCorner")}
+              className="bg-blue-500 text-white px-4 py-2 rounded-full shadow hover:bg-blue-600"
+            >
+              Go to Task Corner
+            </button>
             {/* Search bar */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
