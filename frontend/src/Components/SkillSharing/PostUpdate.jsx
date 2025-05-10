@@ -115,8 +115,9 @@ function PostUpdate({ open, onClose, postData, onPostUpdated }) {
 
 
     } catch (err) {
-      console.error("Update error:", err.response ? err.response.data : err.message);
-      setError(err.response?.data?.message || 'Failed to update post. Please try again.');
+      setError(
+        err.response?.data?.message || 'Failed to update post. Please try again.'
+      );
       setLoading(false);
     }
   };
