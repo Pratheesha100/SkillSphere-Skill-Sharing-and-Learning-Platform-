@@ -23,6 +23,8 @@ public class PostDTO {
     private String content;
     private LocalDateTime createdAt;
     private Long userId;
+    private String authorName;
+    private String authorProfileImage;
     private double rankScore; 
     private int views;
 

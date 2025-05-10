@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
-import { ThumbsUp, MessageCircle, Bookmark, MoreVertical, Hand, Heart, Lightbulb, Laugh, HandHeart, Send, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ThumbsUp, MessageCircle, Bookmark, MoreVertical, Send, X } from 'lucide-react';
 import axios from 'axios';
+import avatarPlaceholder from '../../assets/avatar.png';
+import avatar from '../../assets/avatar.png';
 // For later: import { Menu, MenuItem, CircularProgress, Avatar } from '@mui/material';
 
 // Define category colors (can be imported from a shared constants file too)
@@ -30,15 +31,6 @@ const categoryColors = {
 // - onSavePost: (optional) function to handle saving/unsaving
 // - currentUser: (optional) object for checking ownership for edit/delete
 
-// Updated reactionEmojis to better match common reactions and ensure icons are distinct
-const reactionEmojis = [
-  { icon: <ThumbsUp className="w-7 h-7 text-blue-600" />, label: 'Like' },
-  { icon: <HandHeart className="w-7 h-7 text-red-600" />, label: 'Love' },
-  { icon: <Laugh className="w-7 h-7 text-yellow-500" />, label: 'Haha' },
-  { icon: <Hand className="w-7 h-7 text-green-600" />, label: 'Support' },
-  { icon: <Lightbulb className="w-7 h-7 text-purple-600" />, label: 'Insightful' },
-];
-
 function PostsView({ 
     posts = [], 
     loading = false, 
@@ -46,13 +38,32 @@ function PostsView({
     showAuthorInfo = true,
     currentUserId = null, // ID of the logged-in user
     onOpenMenu,         // Function to call when MoreVertical is clicked: (event, postId) => {}
-    mediaMaxHeight = 'max-h-[500px]' // New prop
+    mediaMaxHeight = 'max-h-[500px]', // New prop
+    // Added props for reaction handling and displaying reactions/comments
+    onReactToPost, // (postId, reactionType) => {}
+    userReactions = {}, // { [postId]: reactionType } or { [postId]: reactionObject }
 }) {
-  const [likePopupIdx, setLikePopupIdx] = useState(null);
   const [expandedComments, setExpandedComments] = useState({});
   const [comments, setComments] = useState({});
   const [newComment, setNewComment] = useState({});
   const [isSubmitting, setIsSubmitting] = useState({});
+  const [postReactionsCount, setPostReactionsCount] = useState({}); // To store reaction counts
+  const [postCommentsCount, setPostCommentsCount] = useState({}); // To store comment counts
+
+  // Get logged-in user's avatar
+  let currentUserAvatar = avatarPlaceholder;
+  try {
+    const userDataString = localStorage.getItem('user');
+    if (userDataString) {
+      const userObj = JSON.parse(userDataString);
+      if (userObj.profileImage) {
+        const imageName = userObj.profileImage.startsWith('/') ? userObj.profileImage.substring(1) : userObj.profileImage;
+        currentUserAvatar = `http://localhost:8080/api/media/files/${imageName}`;
+      } else if (userObj.avatarUrl) {
+        currentUserAvatar = userObj.avatarUrl;
+      }
+    }
+  } catch (e) {}
 
   // Function to fetch comments for a post
   const fetchComments = async (postId) => {
@@ -245,133 +256,135 @@ function PostsView({
               </div>
             )}
             
-            {/* Actions Bar (Like, Comment, Save) - Basic structure */}
-            <div className="flex justify-around items-center border-t border-gray-200 pt-3 mt-auto text-gray-600 font-medium">
-              <div className="relative"> {/* Wrapper for Like button and its popup */}
-                <button 
-                  className="flex items-center gap-1.5 hover:text-blue-600 transition rounded-md px-3 py-1.5 hover:bg-blue-50"
-                  onMouseEnter={() => setLikePopupIdx(uniquePopupId)} 
-                  onMouseLeave={() => setLikePopupIdx(null)}
-                >
-                  <ThumbsUp size={18} /> Like
-                </button>
-                <AnimatePresence>
-                  {likePopupIdx === uniquePopupId && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className="absolute left-[-97%] -translate-x-1/2 bottom-10 z-20 flex gap-2 sm:gap-3 bg-white rounded-3xl shadow-xl px-3 sm:px-4 py-2 border border-gray-200"
-                      onMouseEnter={() => setLikePopupIdx(uniquePopupId)}
-                      onMouseLeave={() => setLikePopupIdx(null)}
-                    >
-                      {reactionEmojis.map((r, i) => (
-                        <motion.div
-                          key={i}
-                          className="flex flex-col items-center cursor-pointer group"
-                          whileHover={{ scale: 1.15, y: -4 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 10 }}
-                        >
-                          {React.cloneElement(r.icon, { className: `${r.icon.props.className} group-hover:brightness-110` })}
-                          <span className="text-xs mt-1 text-gray-600 group-hover:text-blue-600 font-medium">{r.label}</span>
-                        </motion.div>
-                      ))}
-                      {/* Small arrow pointing down */}
-                      <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-3 h-3 bg-white border-r border-b border-gray-200 transform rotate-45 z-[-1]"></div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+            {/* Post Actions: Like, Comment, Save, Share */} 
+            <div className="border-t border-gray-200 pt-3 mt-4">
+              <div className="flex justify-around items-center text-gray-600">
+                {/* Like Button with Count and Popup */}
+                <div className="relative flex items-center">
+                  <button
+                    className={`flex items-center gap-1.5 py-1.5 px-3 rounded-lg hover:bg-gray-100 text-sm transition-colors group ${(userReactions[post.postId] === 'LIKE' || userReactions[post.postId]?.reactionType === 'LIKE') ? 'text-blue-600 font-semibold' : 'text-gray-600'}`}
+                    onClick={() => onReactToPost && onReactToPost(post.postId, 'LIKE')} 
+                    // Removed onMouseEnter and onMouseLeave for popup
+                  >
+                    <ThumbsUp className={`w-5 h-5 ${(userReactions[post.postId] === 'LIKE' || userReactions[post.postId]?.reactionType === 'LIKE') ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-500'}`} />
+                    <span className={`group-hover:text-blue-500 ${(userReactions[post.postId] === 'LIKE' || userReactions[post.postId]?.reactionType === 'LIKE') ? 'text-blue-600' : ''}`}>Like</span>
+                    {/* Reaction count display */} 
+                    {postReactionsCount[post.postId] !== undefined && postReactionsCount[post.postId] > 0 && (
+                        <span className="ml-1 text-xs text-blue-500 font-semibold">
+                            {postReactionsCount[post.postId]}
+                        </span>
+                    )}
+                  </button>
+                  {/* Removed AnimatePresence and motion.div for reaction emoji popup */}
+                </div>
 
-              <button 
-                className="flex items-center gap-1.5 hover:text-green-600 transition rounded-md px-3 py-1.5 hover:bg-green-50"
-                onClick={() => toggleComments(post.postId)}
-              >
-                <MessageCircle size={18} /> Comment
-              </button>
-              <button className="flex items-center gap-1.5 hover:text-purple-600 transition rounded-md px-3 py-1.5 hover:bg-purple-50">
-                <Bookmark size={18} /> Save
-              </button>
+                <button 
+                  className="flex items-center gap-1.5 hover:text-green-600 transition rounded-md px-3 py-1.5 hover:bg-green-50"
+                  onClick={() => toggleComments(post.postId)}
+                >
+                  <MessageCircle size={18} /> Comment
+                  {/* Comment count */}
+                  {Array.isArray(comments[post.postId]) && comments[post.postId].length > 0 && (
+                    <span className="ml-1 text-xs text-green-500 font-semibold">{comments[post.postId].length}</span>
+                  )}
+                </button>
+                <button className="flex items-center gap-1.5 hover:text-purple-600 transition rounded-md px-3 py-1.5 hover:bg-purple-50">
+                  <Bookmark size={18} /> Save
+                </button>
+              </div>
             </div>
 
             {/* Comments Section */}
-            <AnimatePresence>
-              {expandedComments[post.postId] && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="border-t border-gray-100 pt-4 mt-2"
-                >
-                  {/* Comment Input */}
-                  <div className="flex gap-3 mb-4">
-                    <img 
-                      src={getUserProfileImageUrl(postAuthor?.profileImage)}
-                      alt="Your avatar"
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <div className="flex-1 relative">
-                      <input
-                        type="text"
-                        value={newComment[post.postId] || ''}
-                        onChange={(e) => setNewComment(prev => ({ ...prev, [post.postId]: e.target.value }))}
-                        placeholder="Write a comment..."
-                        className="w-full px-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.postId)}
-                      />
-                      <button
-                        onClick={() => handleCommentSubmit(post.postId)}
-                        disabled={isSubmitting[post.postId]}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-700 disabled:opacity-50"
-                      >
-                        <Send size={20} />
-                      </button>
-                    </div>
-                  </div>
+            <div className="border-t border-gray-100 pt-4 mt-2">
+              {/* Comment Input */}
+              <div className="flex gap-3 mb-4">
+                <img 
+                  src={currentUserAvatar}
+                  alt="Your avatar"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={newComment[post.postId] || ''}
+                    onChange={(e) => setNewComment(prev => ({ ...prev, [post.postId]: e.target.value }))}
+                    placeholder="Write a comment..."
+                    className="w-full px-4 py-2 border border-gray-200 rounded-full focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    onKeyPress={(e) => e.key === 'Enter' && handleCommentSubmit(post.postId)}
+                  />
+                  <button
+                    onClick={() => handleCommentSubmit(post.postId)}
+                    disabled={isSubmitting[post.postId]}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-700 disabled:opacity-50"
+                  >
+                    <Send size={20} />
+                  </button>
+                </div>
+              </div>
 
-                  {/* Comments List */}
-                  <div className="space-y-4">
-                    {(comments[post.postId] || []).map((comment) => (
-                      <motion.div
-                        key={comment.commentId}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="flex gap-3"
-                      >
-                        <img 
-                          src={getUserProfileImageUrl(comment.user?.profileImage)}
-                          alt={comment.user?.name || 'User'}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                          <div className="bg-gray-50 rounded-2xl px-4 py-2">
-                            <div className="font-medium text-sm text-gray-900">
-                              {comment.user?.name || 'Unknown User'}
-                            </div>
-                            <p className="text-gray-700 text-sm">{comment.content}</p>
+              {/* Comments List */}
+              <div className="space-y-4">
+                {(comments[post.postId] || []).map((comment) => {
+                  // Use backend-provided fields for name and avatar
+                  const commenterName = comment.commenterUsername || 'Unknown User';
+                  const commenterAvatarUrl = comment.commenterAvatarUrl
+                    ? `http://localhost:8080/api/media/files/${comment.commenterAvatarUrl.startsWith('/') ? comment.commenterAvatarUrl.substring(1) : comment.commenterAvatarUrl}`
+                    : avatarPlaceholder;
+                  const canDelete = currentUserId === comment.userId;
+                  return (
+                    <div
+                      key={comment.commentId}
+                      className="flex gap-3"
+                    >
+                      <img 
+                        src={commenterAvatarUrl}
+                        alt={commenterName}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                      <div className="flex-1">
+                        <div className="bg-gray-50 rounded-2xl px-4 py-2">
+                          <div className="font-medium text-sm text-gray-900">
+                            {commenterName}
                           </div>
-                          <div className="flex items-center gap-4 mt-1 px-2">
-                            <span className="text-xs text-gray-500">
-                              {new Date(comment.createdAt).toLocaleDateString()}
-                            </span>
-                            <button className="text-xs text-gray-500 hover:text-blue-600">
-                              Reply
-                            </button>
-                            {currentUserId === comment.userId && (
-                              <button className="text-xs text-red-500 hover:text-red-600">
-                                Delete
-                              </button>
-                            )}
-                          </div>
+                          <p className="text-gray-700 text-sm">{comment.content}</p>
                         </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                        <div className="flex items-center gap-4 mt-1 px-2">
+                          <span className="text-xs text-gray-500">
+                            {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : ''}
+                          </span>
+                          {/* Delete button for comment owner */}
+                          {canDelete && (
+                            <button
+                              className="text-xs text-red-500 hover:text-red-600"
+                              onClick={async () => {
+                                if (window.confirm('Are you sure you want to delete this comment?')) {
+                                  try {
+                                    const token = localStorage.getItem('token');
+                                    await axios.delete(`http://localhost:8080/api/comments/${comment.commentId}`, {
+                                      headers: { Authorization: `Bearer ${token}` }
+                                    });
+                                    // Refresh comments
+                                    const response = await axios.get(`http://localhost:8080/api/comments/post/${post.postId}`, {
+                                      headers: { Authorization: `Bearer ${token}` }
+                                    });
+                                    const commentList = response.data?._embedded?.commentDTOList || [];
+                                    setComments(prev => ({ ...prev, [post.postId]: commentList }));
+                                  } catch (err) {
+                                    alert('Failed to delete comment.');
+                                  }
+                                }
+                              }}
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         );
       })}

@@ -10,7 +10,7 @@ const navLinks = [
   { name: "Tasks Corner", path: "/TaskCorner" },
   { name: "GameHub", path: "" },
   { name: "Groups", path: "" },
-  { name: "Leader Board", path: "" },
+  { name: "Leader Board", path: "/leaderboard" },
 ];
 
 function Header() {
@@ -66,13 +66,14 @@ function Header() {
       {/* Right side: Notification, Profile, Log In, Sign Up, Logout */}
       <div className="flex items-center gap-4">
         <motion.button
+          onClick={() => navigate("/notifications")}
           whileHover={{ scale: 1.15, rotate: 10 }}
           whileTap={{ scale: 0.95 }}
           className="relative p-2 rounded-full hover:bg-blue-50 transition"
           aria-label="Notifications"
         >
           <Bell className="w-6 h-6 text-blue-600" />
-          {/* Notification dot (optional) */}
+          {/* Notification dot (optional - to be driven by actual unread count later) */}
           {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
         </motion.button>
 
@@ -87,13 +88,13 @@ function Header() {
         </motion.button>
 
         <button
-          onClick={() => navigate("/login")}
+          onClick={() => navigate("/")}
           className="px-[10px] py-[5px] rounded-md border text-sm border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
         >
           Log In
         </button>
         <button
-          onClick={() => navigate("/signup")}
+          onClick={() => navigate("/")}
           className="px-[10px] py-[5px] rounded-md bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition"
         >
           Sign Up

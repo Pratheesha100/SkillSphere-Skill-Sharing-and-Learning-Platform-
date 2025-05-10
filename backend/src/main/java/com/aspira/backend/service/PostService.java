@@ -13,6 +13,8 @@ import com.aspira.backend.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.hibernate.search.mapper.orm.Search;
@@ -208,12 +210,27 @@ public class PostService {
         dto.setContent(post.getContent());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUserId(post.getUser().getUserId());
+
+        // Add author details
+        if (post.getUser() != null) {
+            dto.setAuthorName(post.getUser().getName());
+            dto.setAuthorProfileImage(post.getUser().getProfileImage());
+        } else {
+            // Handle case where post might not have a user (though unlikely for your setup)
+            dto.setAuthorName("Unknown Author");
+            dto.setAuthorProfileImage(null); // Or a default placeholder path
+        }
+
         dto.setViews(post.getViews());
         dto.setRankScore(post.getRankScore());
 
-        // Fetch and set media list
         List<MediaDTO> mediaList = mediaService.getMediaByPostId(post.getPostId());
         dto.setMediaList(mediaList);
+        
+        // Extract and set hashtags
+        if (post.getHashtags() != null) {
+            dto.setHashtags(post.getHashtags().stream().map(Hashtag::getName).collect(Collectors.toList()));
+        }
 
         return dto;
     }
@@ -233,5 +250,12 @@ public class PostService {
         return posts.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<PostDTO> getTopRankedPosts(int limit) {
+        List<Post> topPosts = postRepository.findAll(PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "rankScore"))).getContent();
+        return topPosts.stream()
+                       .map(this::convertToDTO)
+                       .collect(Collectors.toList());
     }
 }

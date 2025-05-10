@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -92,6 +93,12 @@ public class ReactionService {
 
         // Delete the reaction from the database
         reactionRepository.deleteById(reactionId);
+    }
+
+    public Optional<Reaction> findByUserIdAndPostId(Long userId, Long postId) {
+        return reactionRepository.findAll().stream()
+            .filter(r -> r.getUser().getUserId().equals(userId) && r.getPost().getPostId().equals(postId))
+            .findFirst();
     }
 
     private ReactionDTO convertToDTO(Reaction reaction) {
