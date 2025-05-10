@@ -46,6 +46,18 @@ public class User {
     @Column(name = "birthday")
     private LocalDate birthday;  // Date only (no time component)
 
+    @Column(name = "profileimage")
+    private String profileImage; // URL or path to the user's profile image
+
+    @Column(name = "country")
+    private String country;
+
+    @Column(name = "city")
+    private String city;
+
+    @Column(name = "postalcode")
+    private String postalCode;
+
     // Relationships
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore

@@ -18,11 +18,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/media")
@@ -67,14 +67,24 @@ public class MediaController {
     }
 
     // Serve uploaded files
-    @GetMapping("/files/{filename:.+}")
-    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+    @GetMapping("/files/**")
+    public ResponseEntity<Resource> serveFile(HttpServletRequest request) {
+        String requestURI = request.getRequestURI();
+        String basePath = "/api/media/files/";
+        String relativePath = requestURI.substring(requestURI.indexOf(basePath) + basePath.length());
         try {
-            // Extract the actual filename if a full path is inadvertently passed
-            String actualFilename = Paths.get(filename).getFileName().toString();
-
             Path fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
-            Path filePath = fileStorageLocation.resolve(actualFilename).normalize(); // Use actualFilename
+            Path filePath = fileStorageLocation.resolve(relativePath).normalize();
+
+            // Add debug logging
+            System.out.println("MediaController: Trying to serve file: " + filePath);
+
+            if (!Files.exists(filePath)) {
+                System.out.println("MediaController: File does NOT exist: " + filePath);
+            } else {
+                System.out.println("MediaController: File exists: " + filePath);
+            }
+
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() && resource.isReadable()) {
@@ -92,11 +102,11 @@ public class MediaController {
                         .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                         .body(resource);
             } else {
-                // You might want to log this or return a specific error for file not found
+                System.out.println("MediaController: Resource not found or not readable: " + filePath);
                 return ResponseEntity.notFound().build();
             }
-        } catch (MalformedURLException ex) {
-            // You might want to log this or return a specific error
+        } catch (Exception ex) {
+            System.out.println("MediaController: Exception while serving file: " + ex.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }

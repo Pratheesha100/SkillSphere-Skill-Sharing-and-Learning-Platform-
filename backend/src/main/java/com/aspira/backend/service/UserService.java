@@ -5,9 +5,17 @@ import com.aspira.backend.exception.ResourceNotFoundException;
 import com.aspira.backend.model.User;
 import com.aspira.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,8 +24,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${media.upload-dir}")
+    private String baseUploadDir;
 
     @Transactional
     // Create a new user
@@ -37,6 +50,10 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(userDTO.getPassword()));
         user.setOccupation(userDTO.getOccupation());
         user.setBirthday(userDTO.getBirthday());
+        user.setProfileImage(userDTO.getProfileImage());
+        user.setCountry(userDTO.getCountry());
+        user.setCity(userDTO.getCity());
+        user.setPostalCode(userDTO.getPostalCode());
 
         String provider = (userDTO.getProvider() == null || userDTO.getProvider().isBlank()) ? "local"
                 : userDTO.getProvider();
@@ -78,6 +95,10 @@ public class UserService {
         existingUser.setName(userDTO.getName());
         existingUser.setOccupation(userDTO.getOccupation());
         existingUser.setBirthday(userDTO.getBirthday());
+        existingUser.setProfileImage(userDTO.getProfileImage());
+        existingUser.setCountry(userDTO.getCountry());
+        existingUser.setCity(userDTO.getCity());
+        existingUser.setPostalCode(userDTO.getPostalCode());
 
         User updatedUser = userRepository.save(existingUser);
         return convertToDTO(updatedUser);
@@ -117,6 +138,18 @@ public class UserService {
         if (userDTO.getBirthday() != null) {
             existingUser.setBirthday(userDTO.getBirthday());
         }
+        if (userDTO.getProfileImage() != null) {
+            existingUser.setProfileImage(userDTO.getProfileImage());
+        }
+        if (userDTO.getCountry() != null) {
+            existingUser.setCountry(userDTO.getCountry());
+        }
+        if (userDTO.getCity() != null) {
+            existingUser.setCity(userDTO.getCity());
+        }
+        if (userDTO.getPostalCode() != null) {
+            existingUser.setPostalCode(userDTO.getPostalCode());
+        }
 
         User updatedUser = userRepository.save(existingUser);
         return convertToDTO(updatedUser);
@@ -134,8 +167,45 @@ public class UserService {
         return convertToDTO(user);
     }
 
+    @Transactional
+    public UserDTO saveProfileImage(Long userId, MultipartFile file) throws Exception {
+        logger.info("Attempting to save profile image for userId: {}", userId);
+        logger.info("Uploaded filename: {}", file.getOriginalFilename());
+        logger.info("Base upload directory from properties (media.upload-dir): '{}'", baseUploadDir);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        String profileImagesSubDir = "profile-images";
+        Path fullUploadPath = Paths.get(baseUploadDir, profileImagesSubDir);
+        logger.info("Resolved full upload directory for profile images: '{}'", fullUploadPath.toString());
+
+        Files.createDirectories(fullUploadPath);
+        logger.info("Ensured directory exists: '{}'", fullUploadPath.toString());
+
+        String filename = "user-" + userId + "-" + System.currentTimeMillis() + "-" + file.getOriginalFilename();
+        Path filePath = fullUploadPath.resolve(filename);
+        logger.info("Final resolved file path for saving: '{}'", filePath.toString());
+
+        try {
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            logger.info("Successfully copied file to: '{}'", filePath.toString());
+        } catch (Exception e) {
+            logger.error("Failed to copy file to: '{}'", filePath.toString(), e);
+            throw e;
+        }
+
+        String storedDbPath = profileImagesSubDir + "/" + filename;
+        user.setProfileImage(storedDbPath);
+        logger.info("Storing path in database: '{}'", storedDbPath);
+        
+        User updatedUser = userRepository.save(user);
+        logger.info("Successfully updated user profileImage in database for userId: {}", userId);
+        return convertToDTO(updatedUser);
+    }
+
     // Convert User entity to UserDTO
-    private UserDTO convertToDTO(User user) {
+    public UserDTO convertToDTO(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(user.getUserId());
         userDTO.setName(user.getName());
@@ -143,6 +213,10 @@ public class UserService {
         userDTO.setEmail(user.getEmail());
         userDTO.setOccupation(user.getOccupation());
         userDTO.setBirthday(user.getBirthday());
+        userDTO.setProfileImage(user.getProfileImage());
+        userDTO.setCountry(user.getCountry());
+        userDTO.setCity(user.getCity());
+        userDTO.setPostalCode(user.getPostalCode());
         return userDTO;
     }
 }

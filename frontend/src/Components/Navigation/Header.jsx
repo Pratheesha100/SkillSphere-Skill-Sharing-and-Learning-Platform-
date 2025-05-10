@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, GraduationCap } from "lucide-react";
+import { Bell, GraduationCap, UserCircle } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const navLinks = [
@@ -19,6 +19,12 @@ function Header() {
   const [hovered, setHovered] = useState(null);
 
   const isActive = (path) => location.pathname === path;
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
 
   return (
     <header className="w-full bg-white shadow flex items-center justify-between px-8 py-3 rounded-b-lg">
@@ -57,7 +63,7 @@ function Header() {
         ))}
       </nav>
 
-      {/* Right side: Notification, Log In, Sign Up */}
+      {/* Right side: Notification, Profile, Log In, Sign Up, Logout */}
       <div className="flex items-center gap-4">
         <motion.button
           whileHover={{ scale: 1.15, rotate: 10 }}
@@ -69,17 +75,34 @@ function Header() {
           {/* Notification dot (optional) */}
           {/* <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span> */}
         </motion.button>
+
+        <motion.button
+          onClick={() => navigate("/profile")}
+          whileHover={{ scale: 1.15 }}
+          whileTap={{ scale: 0.95 }}
+          className="relative p-2 rounded-full hover:bg-blue-50 transition"
+          aria-label="Profile"
+        >
+          <UserCircle className="w-6 h-6 text-blue-600" />
+        </motion.button>
+
         <button
           onClick={() => navigate("/login")}
-          className="px-4 py-1.5 rounded-md border text-sm border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
+          className="px-[10px] py-[5px] rounded-md border text-sm border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
         >
           Log In
         </button>
         <button
           onClick={() => navigate("/signup")}
-          className="px-4 py-1.5 rounded-md bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition"
+          className="px-[10px] py-[5px] rounded-md bg-blue-600 text-white font-semibold text-sm hover:bg-blue-700 transition"
         >
           Sign Up
+        </button>
+        <button
+          onClick={handleLogout}
+          className="px-[10px] py-[5px] rounded-md bg-rose-600 text-white font-semibold text-sm hover:bg-rose-700 transition"
+        >
+          Logout
         </button>
       </div>
     </header>

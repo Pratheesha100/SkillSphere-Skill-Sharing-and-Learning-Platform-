@@ -123,7 +123,7 @@ const SignupForm = ({ onSuccess }) => {
   // Check if email exists
   const checkEmailExists = async (email) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/users/check-email?email=${email}`);
+      const response = await axios.get(`http://localhost:8080/api/users/email?email=${email}`);
       return response.data.exists;
     } catch (error) {
       console.error("Error checking email existence:", error);
