@@ -15,10 +15,20 @@ public class BackendApplication {
 		 // Load .env
 		 Dotenv dotenv = Dotenv.configure().load();
 		  // Set system properties for Spring Boot to use
-		  System.setProperty("DB_URL", dotenv.get("DB_URL"));
-		  System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
-		  System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
-		  System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
+		  String dbUrl = dotenv.get("DB_URL");
+		  String dbUsername = dotenv.get("DB_USERNAME");
+		  String dbPassword = dotenv.get("DB_PASSWORD");
+		  String jwtSecret = dotenv.get("JWT_SECRET");
+
+		  if (dbUrl == null) System.err.println("Warning: DB_URL is not set in .env");
+		  if (dbUsername == null) System.err.println("Warning: DB_USERNAME is not set in .env");
+		  if (dbPassword == null) System.err.println("Warning: DB_PASSWORD is not set in .env");
+		  if (jwtSecret == null) System.err.println("Warning: JWT_SECRET is not set in .env");
+
+		  if (dbUrl != null) System.setProperty("DB_URL", dbUrl);
+		  if (dbUsername != null) System.setProperty("DB_USERNAME", dbUsername);
+		  if (dbPassword != null) System.setProperty("DB_PASSWORD", dbPassword);
+		  if (jwtSecret != null) System.setProperty("JWT_SECRET", jwtSecret);
 
         SpringApplication.run(BackendApplication.class, args);
 	}
