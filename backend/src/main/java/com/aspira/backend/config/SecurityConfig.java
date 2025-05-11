@@ -62,10 +62,11 @@ public class SecurityConfig {
                         // Add your skill share module endpoints here
 
                         // Group module
-                        // Add your group module endpoints here
+                        .requestMatchers("/api/groups/**").authenticated()
 
                         // Game Hub module
                         // Add your game hub module endpoints here
+                        .requestMatchers("/api/users/all").authenticated()
                         .anyRequest().authenticated()
                         )
                         .oauth2Login(oauth2 -> oauth2

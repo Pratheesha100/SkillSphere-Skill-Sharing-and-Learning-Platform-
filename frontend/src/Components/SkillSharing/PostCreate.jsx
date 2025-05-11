@@ -93,8 +93,11 @@ function PostCreate({ onClose }) {
         });
       }
       setSuccess('Post created successfully!');
+      // Wait for 1 second to show success message before navigating
       setTimeout(() => {
         onClose();
+        // Navigate to posts page
+        window.location.href = '/posts';
       }, 1000);
     } catch (err) {
       setError('Failed to create post.');
