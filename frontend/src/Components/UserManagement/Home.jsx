@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { Search, Smile, Users, BookOpen, Camera, Music, BarChart2, Cpu, Layers, Award } from "lucide-react";
 import laying from "../../assets/Float.png";
 import studying from "../../assets/Studying.png";
@@ -23,6 +24,12 @@ const categories = [
 ];
 
 export default function Home() {
+  const navigate = useNavigate();
+
+  const handleGroupClick = () => {
+    navigate('/groups');
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#ecedee]">
       {/* Header Section */}
@@ -37,7 +44,6 @@ export default function Home() {
               className="text-4xl md:text-5xl font-extrabold text-[#18181b] mb-4 leading-tight"
             >
              Empower Your Skills, Share Your Knowledge
-
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -47,6 +53,12 @@ export default function Home() {
             >
              Discover courses, share your expertise, and collaborate with others to expand your skillset <br/> Join a thriving community of knowledge seekers and elevate your learning journey.
             </motion.p>
+            <button
+              onClick={() => navigate("/TaskCorner")}
+              className="bg-blue-500 text-white px-4 py-2 rounded-full shadow hover:bg-blue-600"
+            >
+              Go to Task Corner
+            </button>
             {/* Search bar */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}

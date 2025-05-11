@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +18,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,9 +82,14 @@ public class UserService {
 
     // Get user by username
     public List<UserDTO> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        try {
+            return userRepository.findAll().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("Error fetching all users", e);
+            throw new RuntimeException("Failed to fetch users", e);
+        }
     }
 
     @Transactional
@@ -204,6 +210,17 @@ public class UserService {
         return convertToDTO(updatedUser);
     }
 
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getEmail())
+                .password(user.getPasswordHash())
+                .roles("USER")
+                .build();
+    }
+
     // Convert User entity to UserDTO
     public UserDTO convertToDTO(User user) {
         UserDTO userDTO = new UserDTO();
@@ -217,6 +234,7 @@ public class UserService {
         userDTO.setCountry(user.getCountry());
         userDTO.setCity(user.getCity());
         userDTO.setPostalCode(user.getPostalCode());
+        userDTO.setProvider(user.getProvider());
         return userDTO;
     }
 }
