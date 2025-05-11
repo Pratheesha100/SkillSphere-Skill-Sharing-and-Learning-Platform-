@@ -9,7 +9,7 @@ const navLinks = [
   { name: "Posts", path: "/posts" },
   { name: "Tasks Corner", path: "/TaskCorner" },
   { name: "GameHub", path: "" },
-  { name: "Groups", path: "" },
+  { name: "Groups", path: "/groups" },
   { name: "Leader Board", path: "/leaderboard" },
 ];
 
