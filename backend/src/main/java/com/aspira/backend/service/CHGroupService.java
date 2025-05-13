@@ -271,4 +271,28 @@ public class CHGroupService {
         dto.setMemberCount(group.getMembers().size());
         return dto;
     }
+
+    @Transactional
+    public void deleteGroup(Long groupId, Long adminId) {
+        try {
+            log.debug("Attempting to delete group {} by admin {}", groupId, adminId);
+            
+            CHGroup group = groupRepository.findById(groupId)
+                    .orElseThrow(() -> {
+                        log.error("Group not found with ID: {}", groupId);
+                        return new ResourceNotFoundException("Group not found");
+                    });
+
+            if (!group.getAdmin().getUserId().equals(adminId)) {
+                log.error("User {} is not authorized to delete group {}", adminId, groupId);
+                throw new UnauthorizedException("Only group admin can delete the group");
+            }
+
+            groupRepository.delete(group);
+            log.debug("Group {} deleted successfully by admin {}", groupId, adminId);
+        } catch (Exception e) {
+            log.error("Error deleting group", e);
+            throw e;
+        }
+    }
 } 
