@@ -15,10 +15,29 @@ public class BackendApplication {
 		 // Load .env
 		 Dotenv dotenv = Dotenv.configure().load();
 		  // Set system properties for Spring Boot to use
-		  System.setProperty("DB_URL", dotenv.get("DB_URL"));
-		  System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
-		  System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
-		  System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
+		  if (dotenv.get("DB_URL") != null) {
+		      System.setProperty("DB_URL", dotenv.get("DB_URL"));
+		  } else {
+		      throw new IllegalArgumentException("DB_URL is not set in the .env file");
+		  }
+
+		  if (dotenv.get("DB_USERNAME") != null) {
+		      System.setProperty("DB_USERNAME", dotenv.get("DB_USERNAME"));
+		  } else {
+		      throw new IllegalArgumentException("DB_USERNAME is not set in the .env file");
+		  }
+
+		  if (dotenv.get("DB_PASSWORD") != null) {
+		      System.setProperty("DB_PASSWORD", dotenv.get("DB_PASSWORD"));
+		  } else {
+		      throw new IllegalArgumentException("DB_PASSWORD is not set in the .env file");
+		  }
+
+		  if (dotenv.get("JWT_SECRET") != null) {
+		      System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
+		  } else {
+		      throw new IllegalArgumentException("JWT_SECRET is not set in the .env file");
+		  }
 
         SpringApplication.run(BackendApplication.class, args);
 	}
