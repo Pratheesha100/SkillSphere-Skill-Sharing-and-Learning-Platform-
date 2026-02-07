@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Confetti from './Confetti';
 
@@ -6,6 +6,12 @@ const MemoryMatchSummary = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const results = location.state?.results;
+
+  useEffect(() => {
+    if (!results) {
+      console.error('No results found. Ensure results are passed via location.state.');
+    }
+  }, [results]);
 
   if (!results) {
     return (
